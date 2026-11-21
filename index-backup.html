@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Калькулятор заявок — Фасады</title>
+
+<script src="jspdf.umd.min.js"></script>
+<script src="jspdf.plugin.autotable.min.js"></script>
+
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f8; margin: 0; padding: 20px; color: #222; }
+  .container { max-width: 1100px; margin: 0 auto; }
+  h1 { font-size: 22px; margin: 0 0 15px; }
+  h2 { font-size: 18px; margin: 25px 0 10px; color: #333; border-bottom: 2px solid #2c7be5; padding-bottom: 5px; }
+  
+  .card { background: #fff; border-radius: 8px; padding: 15px 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); margin-bottom: 20px; }
+  
+  /* Ограничиваем ширину только карточки ввода, чтобы она не была на весь экран */
+  .input-card { max-width: 550px; }
+  
+  /* Жесткая фиксация ширины колонок, чтобы убрать пустоты (стрелочка) */
+  table { width: 100%; border-collapse: collapse; font-size: 14px; table-layout: fixed; }
+  th, td { padding: 8px 5px; text-align: left; border-bottom: 1px solid #eee; }
+  
+  th { background: #f0f3f7; font-weight: 600; font-size: 13px; color: #555; }
+  tr:hover td { background: #fafbfc; }
+  
+  /* Поля ввода и селекты */
+  input[type=number] { width: 100%; max-width: 80px; padding: 6px 8px; font-size: 14px; border: 1px solid #ccc; border-radius: 4px; text-align: right; }
+  input[type=number]::placeholder { color: #bbb; }
+  select { width: 100%; padding: 6px 8px; font-size: 14px; border: 1px solid #ccc; border-radius: 4px; background: #fff; }
+  
+  .btns { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px; }
+  button { padding: 10px 20px; font-size: 14px; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; transition: 0.2s; }
+  .btn-primary { background: #2c7be5; color: #fff; } .btn-primary:hover { background: #1a68d1; }
+  .btn-secondary { background: #e3e7ec; color: #333; } .btn-secondary:hover { background: #d0d5db; }
+  .btn-success { background: #28a745; color: #fff; } .btn-success:hover { background: #1e7e34; }
+  .btn-danger { background: #dc3545; color: #fff; } .btn-danger:hover { background: #b02a37; }
+  
+  #results { display: none; }
+  /* Для таблиц с результатами возвращаем полную ширину и авто-раскладку */
+  #results table { table-layout: auto; }
+  
+  .total-row { font-weight: 700; background: #eaf3ff !important; }
+  .color-header { background: #f8f5ff !important; font-weight: 700; color: #6f42c1; }
+  .color-subtotal { background: #f0eaff !important; font-weight: 600; }
+  .grand-total { background: #d9ecff !important; font-weight: 700; font-size: 15px; }
+  .info-block { font-size: 13px; color: #666; margin-bottom: 10px; }
+  .num { text-align: right; }
+  .indent { padding-left: 15px !important; }
+
+  /* ================= ПЕЧАТЬ ================= */
+  @media print {
+    @page { size: A4; margin: 12mm 10mm; }
+    body { background: #fff !important; padding: 0 !important; font-size: 11px; color: #000; }
+    .container { max-width: 100%; }
+    .btns, button, .no-print { display: none !important; }
+    .card { box-shadow: none !important; border: 1px solid #ccc; border-radius: 0; padding: 8px 10px; margin-bottom: 12px; break-inside: avoid; page-break-inside: avoid; }
+    h2 { break-after: avoid; page-break-after: avoid; margin: 0 0 6px; font-size: 14px; }
+    table { font-size: 10px; table-layout: auto !important; }
+    thead { display: table-header-group; }
+    tfoot { display: table-footer-group; }
+    tr { break-inside: avoid; page-break-inside: avoid; }
+    th, td { padding: 4px 6px; border-bottom: 1px solid #ddd; }
+    th { background: #eee !important; color: #000; }
+    .grand-total { background: #e6f0ff !important; }
+    .color-header { background: #f3efff !important; }
+    .color-subtotal { background: #ece6ff !important; }
+    .total-row { background: #e6f0ff !important; }
+    tr:hover td { background: transparent !important; }
+    h1 { font-size: 16px; margin: 0 0 10px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <h1>Калькулятор заявок — Фасады</h1>
+
+  <!-- Добавлен класс input-card для ограничения ширины -->
+  <div class="card input-card no-print">
+    <h2 style="margin-top:0">1. Введите количество по фасадам</h2>
+    <div class="info-block">Пустые поля считаются как 0 и не участвуют в расчёте.</div>
+    <table>
+      <colgroup>
+        <!-- Жестко задаем проценты ширины для колонок -->
+        <col style="width: 10%;">
+        <col style="width: 35%;">
+        <col style="width: 35%;">
+        <col style="width: 20%;">
+      </colgroup>
+      <thead>
+        <tr>
+          <th>№</th>
+          <th>Наименование</th>
+          <th>Цвет</th>
+          <th>Кол-во</th>
+        </tr>
+      </thead>
+      <tbody id="inputBody"></tbody>
+    </table>
+    <div class="btns">
+      <button class="btn-primary" onclick="calculate()">РАССЧИТАТЬ</button>
+      <button class="btn-danger" onclick="clearAll()">ОЧИСТИТЬ</button>
+    </div>
+  </div>
+
+  <div id="results">
+    <div class="card">
+      <h2 style="margin-top:0">2. Стекло — по цветам</h2>
+      <div class="info-block">Цвет стекла определяется цветом фасада, в который оно входит. Для каждого цвета — общий итог.</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Цвет / Размер, мм</th>
+            <th class="num" style="width:120px">Кол-во, шт</th>
+          </tr>
+        </thead>
+        <tbody id="glassBody"></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">3. Планки — по цветам</h2>
+      <div class="info-block">Все планки сгруппированы по цвету фасадов. Для каждого цвета — общая длина.</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Цвет / Длина, мм</th>
+            <th class="num" style="width:100px">Кол-во, шт</th>
+            <th class="num" style="width:140px">Общая длина, мм</th>
+            <th class="num" style="width:120px">Общая длина, м</th>
+          </tr>
+        </thead>
+        <tbody id="plankBody"></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">4. Фурнитура — пакетики с петлями</h2>
+      <div class="info-block">Цвет не важен. Считаем, сколько пакетиков с 2, 3 и 5 петлями нужно собрать.</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Тип пакетика</th>
+            <th class="num" style="width:180px">Кол-во пакетиков, шт</th>
+            <th class="num" style="width:160px">Всего петель, шт</th>
+          </tr>
+        </thead>
+        <tbody id="hingeBody"></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">5. Полуфабрикаты (с учётом цвета)</h2>
+      <table>
+        <thead><tr><th style="width:40px">№</th><th>Наименование</th><th>Цвет</th><th class="num" style="width:120px">Кол-во, шт</th></tr></thead>
+        <tbody id="semiBody"></tbody>
+      </table>
+    </div>
+
+    <div class="btns">
+      <button class="btn-success" onclick="downloadPDF()">СКАЧАТЬ PDF</button>
+      <button class="btn-secondary" onclick="window.print()">ПЕЧАТЬ</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ============================================================
+   БАЗА РЕЦЕПТОВ
+   ============================================================ */
+const RECIPES = {
+  "Ф-20 AL":   { planks: [{size:712, qty:2}, {size:396, qty:2}], glass: [{w:367, h:683, qty:1}], hinges: 2 },
+  "Ф-46 AL":   { planks: [{size:712, qty:2}, {size:596, qty:2}], glass: [{w:567, h:683, qty:1}], hinges: 2 },
+  "Ф-20H AL":  { planks: [{size:916, qty:2}, {size:396, qty:2}], glass: [{w:367, h:887, qty:1}], hinges: 3 },
+  "Ф-30H AL":  { planks: [{size:916, qty:2}, {size:496, qty:2}], glass: [{w:467, h:887, qty:1}], hinges: 3 },
+  "Ф-46H AL":  { planks: [{size:916, qty:2}, {size:596, qty:2}], glass: [{w:567, h:887, qty:1}], hinges: 3 },
+  "Ф-92H AL":  { planks: [{size:1516, qty:2},{size:596, qty:2}], glass: [{w:567, h:1487, qty:1}], hinges: 3 },
+  "Ф-91H AL":  { planks: [{size:1516, qty:2},{size:396, qty:2}], glass: [{w:367, h:1487, qty:1}], hinges: 3 },
+  "Ф-554H AL": { planks: [{size:550, qty:2}, {size:2232, qty:2}],glass: [{w:521, h:2203, qty:1}], hinges: 5 }
+};
+
+const COLORS = ["ЧЕРН", "ЧЕРН, Браво", "Золото", "Белый"];
+
+// Новый порядок вывода в таблице
+const facadeNames = [
+  "Ф-20 AL", 
+  "Ф-20H AL", 
+  "Ф-46 AL", 
+  "Ф-46H AL", 
+  "Ф-30H AL", 
+  "Ф-92H AL", 
+  "Ф-91H AL", 
+  "Ф-554H AL"
+];
+
+/* ============================================================
+   ФОРМА
+   ============================================================ */
+const inputBody = document.getElementById('inputBody');
+
+function buildForm() {
+  inputBody.innerHTML = '';
+  facadeNames.forEach((name, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${i + 1}</td>
+      <td>${name}</td>
+      <td>
+        <select id="color_${i}">
+          ${COLORS.map(c => `<option value="${c}">${c}</option>`).join('')}
+        </select>
+      </td>
+      <td><input type="number" id="qty_${i}" value="" placeholder="0" min="0" step="1"></td>
+    `;
+    inputBody.appendChild(tr);
+  });
+}
+buildForm();
+
+function getQty(i) {
+  const v = document.getElementById(`qty_${i}`).value;
+  if (v === '' || v === null) return 0;
+  const n = parseInt(v);
+  return isNaN(n) || n < 0 ? 0 : n;
+}
+
+/* ============================================================
+   РАСЧЁТ
+   ============================================================ */
+let lastResult = null;
+
+function calculate() {
+  const glassByColor = {};
+  const plankByColor = {};
+  const hingePackets = {};
+  const semiMap = {};
+  let totalSemi = 0;
+
+  facadeNames.forEach((name, i) => {
+    const qty = getQty(i);
+    const color = document.getElementById(`color_${i}`).value;
+    if (qty <= 0) return;
+
+    const recipe = RECIPES[name];
+
+    // Стекло
+    if (!glassByColor[color]) glassByColor[color] = {};
+    recipe.glass.forEach(g => {
+      const key = `${g.w}x${g.h}`;
+      glassByColor[color][key] = (glassByColor[color][key] || 0) + g.qty * qty;
+    });
+
+    // Планки
+    if (!plankByColor[color]) plankByColor[color] = {};
+    recipe.planks.forEach(p => {
+      plankByColor[color][p.size] = (plankByColor[color][p.size] || 0) + p.qty * qty;
+    });
+
+    // Фурнитура
+    const h = recipe.hinges;
+    if (!hingePackets[h]) hingePackets[h] = { packets: 0, totalHinges: 0 };
+    hingePackets[h].packets += qty;
+    hingePackets[h].totalHinges += h * qty;
+
+    // Полуфабрикаты
+    const semiKey = `${name}||${color}`;
+    semiMap[semiKey] = (semiMap[semiKey] || 0) + qty;
+    totalSemi += qty;
+  });
+
+  if (!totalSemi) {
+    alert('Заполните хотя бы одну позицию (количество больше 0).');
+    return;
+  }
+
+  const colorsOrder = COLORS.filter(c => glassByColor[c] || plankByColor[c]);
+
+  /* ---- СТЕКЛО ---- */
+  const glassBody = document.getElementById('glassBody');
+  glassBody.innerHTML = '';
+  let glassGrandQty = 0;
+
+  colorsOrder.forEach(color => {
+    const sizes = glassByColor[color];
+    if (!sizes) return;
+
+    const sizeEntries = Object.entries(sizes)
+      .map(([k, q]) => {
+        const [w, h] = k.split('x').map(Number);
+        return { w, h, qty: q, area: w * h };
+      })
+      .sort((a, b) => b.area - a.area);
+
+    glassBody.innerHTML += `<tr class="color-header"><td colspan="2">Цвет: ${color}</td></tr>`;
+
+    let colorQty = 0;
+    sizeEntries.forEach(g => {
+      colorQty += g.qty;
+      glassBody.innerHTML += `<tr>
+        <td class="indent">${g.w} × ${g.h}</td>
+        <td class="num">${g.qty}</td>
+      </tr>`;
+    });
+
+    glassBody.innerHTML += `<tr class="color-subtotal">
+      <td>Итого стекла ${color}:</td>
+      <td class="num">${colorQty}</td>
+    </tr>`;
+
+    glassGrandQty += colorQty;
+  });
+
+  glassBody.innerHTML += `<tr class="grand-total">
+    <td>ВСЕГО СТЕКЛА:</td>
+    <td class="num">${glassGrandQty}</td>
+  </tr>`;
+
+  /* ---- ПЛАНКИ ---- */
+  const plankBody = document.getElementById('plankBody');
+  plankBody.innerHTML = '';
+  let grandQty = 0;
+  let grandMm = 0;
+
+  colorsOrder.forEach(color => {
+    const sizes = plankByColor[color];
+    if (!sizes) return;
+
+    const sizeEntries = Object.entries(sizes)
+      .map(([s, q]) => ({ size: parseInt(s), qty: q }))
+      .sort((a, b) => b.size - a.size);
+
+    plankBody.innerHTML += `<tr class="color-header"><td colspan="4">Цвет: ${color}</td></tr>`;
+
+    let colorQty = 0, colorMm = 0;
+    sizeEntries.forEach(p => {
+      const lineMm = p.size * p.qty;
+      colorQty += p.qty;
+      colorMm += lineMm;
+      plankBody.innerHTML += `<tr>
+        <td class="indent">${p.size} мм</td>
+        <td class="num">${p.qty}</td>
+        <td class="num">${lineMm.toLocaleString('ru-RU')}</td>
+        <td class="num">${(lineMm/1000).toFixed(3).replace('.', ',')}</td>
+      </tr>`;
+    });
+
+    plankBody.innerHTML += `<tr class="color-subtotal">
+      <td>Итого ${color}:</td>
+      <td class="num">${colorQty}</td>
+      <td class="num">${colorMm.toLocaleString('ru-RU')}</td>
+      <td class="num">${(colorMm/1000).toFixed(3).replace('.', ',')}</td>
+    </tr>`;
+
+    grandQty += colorQty;
+    grandMm += colorMm;
+  });
+
+  plankBody.innerHTML += `<tr class="grand-total">
+    <td>ВСЕГО ПЛАНОК:</td>
+    <td class="num">${grandQty}</td>
+    <td class="num">${grandMm.toLocaleString('ru-RU')}</td>
+    <td class="num">${(grandMm/1000).toFixed(3).replace('.', ',')}</td>
+  </tr>`;
+
+  /* ---- ФУРНИТУРА ---- */
+  const hingeBody = document.getElementById('hingeBody');
+  hingeBody.innerHTML = '';
+  const hingeKeys = Object.keys(hingePackets).map(Number).sort((a, b) => a - b);
+  let totalPackets = 0, totalHingesAll = 0;
+
+  hingeKeys.forEach(h => {
+    const p = hingePackets[h];
+    totalPackets += p.packets;
+    totalHingesAll += p.totalHinges;
+    hingeBody.innerHTML += `<tr>
+      <td>Пакетик с ${h} петлями</td>
+      <td class="num">${p.packets}</td>
+      <td class="num">${p.totalHinges}</td>
+    </tr>`;
+  });
+
+  hingeBody.innerHTML += `<tr class="grand-total">
+    <td>ИТОГО пакетиков:</td>
+    <td class="num">${totalPackets}</td>
+    <td class="num">${totalHingesAll}</td>
+  </tr>`;
+
+  /* ---- ПОЛУФАБРИКАТЫ ---- */
+  const semiBody = document.getElementById('semiBody');
+  semiBody.innerHTML = '';
+  const semiEntries = Object.entries(semiMap).sort((a,b) => a[0].localeCompare(b[0]));
+  semiEntries.forEach(([key, qty], idx) => {
+    const [name, color] = key.split('||');
+    semiBody.innerHTML += `<tr><td>${idx+1}</td><td>${name}</td><td>${color}</td><td class="num">${qty}</td></tr>`;
+  });
+  semiBody.innerHTML += `<tr class="total-row"><td colspan="3">ИТОГО полуфабрикатов</td><td class="num">${totalSemi}</td></tr>`;
+
+  /* ---- СОХРАНЕНИЕ ---- */
+  lastResult = {
+    glassByColor: colorsOrder
+      .filter(c => glassByColor[c])
+      .map(color => {
+        const entries = Object.entries(glassByColor[color])
+          .map(([k, q]) => {
+            const [w, h] = k.split('x').map(Number);
+            return { w, h, qty: q, area: w * h };
+          })
+          .sort((a, b) => b.area - a.area);
+        const qty = entries.reduce((s, g) => s + g.qty, 0);
+        return { color, lines: entries, qty };
+      }),
+    glassGrandQty,
+    planksByColor: colorsOrder
+      .filter(c => plankByColor[c])
+      .map(color => {
+        const lines = Object.entries(plankByColor[color])
+          .map(([s, q]) => ({ size: parseInt(s), qty: q, totalMm: parseInt(s) * q, totalM: parseInt(s) * q / 1000 }))
+          .sort((a, b) => b.size - a.size);
+        const qty = lines.reduce((s, l) => s + l.qty, 0);
+        const mm = lines.reduce((s, l) => s + l.totalMm, 0);
+        return { color, lines, qty, mm, m: mm / 1000 };
+      }),
+    plankGrandQty: grandQty,
+    plankGrandMm: grandMm,
+    plankGrandM: grandMm / 1000,
+    hinges: hingeKeys.map(h => ({ hinges: h, packets: hingePackets[h].packets, totalHinges: hingePackets[h].totalHinges })),
+    hingeTotalPackets: totalPackets,
+    hingeTotalHinges: totalHingesAll,
+    semi: semiEntries.map(([k, q]) => { const [n,c] = k.split('||'); return {name:n, color:c, qty:q}; }),
+    totalSemi,
+    timestamp: new Date()
+  };
+
+  document.getElementById('results').style.display = 'block';
+  document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+}
+
+/* ============================================================
+   ОЧИСТКА
+   ============================================================ */
+function clearAll() {
+  facadeNames.forEach((_, i) => {
+    document.getElementById(`qty_${i}`).value = '';
+    document.getElementById(`color_${i}`).selectedIndex = 0;
+  });
+  document.getElementById('results').style.display = 'none';
+  lastResult = null;
+}
+
+/* ============================================================
+   ЭКСПОРТ В PDF
+   ============================================================ */
+function downloadPDF() {
+  if (!lastResult) return;
+  if (typeof window.jspdf === 'undefined') { alert('Библиотека jsPDF не загружена.'); return; }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const ts = lastResult.timestamp.toLocaleString('ru-RU');
+
+  doc.setFontSize(14);
+  doc.text("Спецификация заявки на фасады", 14, 15);
+  doc.setFontSize(10);
+  doc.text(`Сформировано: ${ts}`, 14, 22);
+
+  // 1. Стекло
+  doc.setFontSize(12);
+  doc.text("1. Стекло — по цветам", 14, 32);
+
+  const glassBodyData = [];
+  lastResult.glassByColor.forEach(group => {
+    glassBodyData.push([{ content: `Цвет: ${group.color}`, colSpan: 3, styles: { fillColor: [248,245,255], fontStyle: 'bold', textColor: [111,66,193] } }]);
+    group.lines.forEach(g => {
+      glassBodyData.push(["", `${g.w} × ${g.h}`, g.qty]);
+    });
+    glassBodyData.push([{ content: `Итого ${group.color}:`, colSpan: 2, styles: { fillColor: [240,234,255], fontStyle: 'bold' } }, group.qty]);
+  });
+
+  doc.autoTable({
+    startY: 36,
+    head: [["Цвет", "Размер (Ш × В), мм", "Кол-во, шт"]],
+    body: glassBodyData,
+    foot: [["ВСЕГО СТЕКЛА:", "", lastResult.glassGrandQty]],
+    styles: { fontSize: 10 },
+    headStyles: { fillColor: [44, 123, 229] },
+    footStyles: { fillColor: [217, 236, 255], textColor: [0,0,0], fontStyle: 'bold' }
+  });
+
+  // 2. Планки
+  let y = doc.lastAutoTable.finalY + 10;
+  doc.text("2. Планки — по цветам", 14, y);
+
+  const plankBody = [];
+  lastResult.planksByColor.forEach(group => {
+    plankBody.push([{ content: `Цвет: ${group.color}`, colSpan: 5, styles: { fillColor: [248,245,255], fontStyle: 'bold', textColor: [111,66,193] } }]);
+    group.lines.forEach(l => {
+      plankBody.push(["", l.size, l.qty, l.totalMm.toLocaleString('ru-RU'), l.totalM.toFixed(3).replace('.', ',')]);
+    });
+    plankBody.push([{ content: `Итого ${group.color}:`, colSpan: 2, styles: { fillColor: [240,234,255], fontStyle: 'bold' } }, group.qty, group.mm.toLocaleString('ru-RU'), group.m.toFixed(3).replace('.', ',')]);
+  });
+
+  doc.autoTable({
+    startY: y + 4,
+    head: [["Цвет", "Длина, мм", "Кол-во, шт", "Общая длина, мм", "Общая длина, м"]],
+    body: plankBody,
+    foot: [["ВСЕГО ПЛАНОК:", "", lastResult.plankGrandQty, lastResult.plankGrandMm.toLocaleString('ru-RU'), lastResult.plankGrandM.toFixed(3).replace('.', ',')]],
+    styles: { fontSize: 9 },
+    headStyles: { fillColor: [44, 123, 229] },
+    footStyles: { fillColor: [217, 236, 255], textColor: [0,0,0], fontStyle: 'bold' }
+  });
+
+  // 3. Фурнитура
+  y = doc.lastAutoTable.finalY + 10;
+  doc.text("3. Фурнитура — пакетики с петлями", 14, y);
+
+  doc.autoTable({
+    startY: y + 4,
+    head: [["Тип пакетика", "Кол-во пакетиков, шт", "Всего петель, шт"]],
+    body: lastResult.hinges.map(h => [`Пакетик с ${h.hinges} петлями`, h.packets, h.totalHinges]),
+    foot: [["ИТОГО:", lastResult.hingeTotalPackets, lastResult.hingeTotalHinges]],
+    styles: { fontSize: 10 },
+    headStyles: { fillColor: [44, 123, 229] },
+    footStyles: { fillColor: [217, 236, 255], textColor: [0,0,0], fontStyle: 'bold' }
+  });
+
+  // 4. Полуфабрикаты
+  y = doc.lastAutoTable.finalY + 10;
+  doc.text("4. Полуфабрикаты (с учётом цвета)", 14, y);
+
+  doc.autoTable({
+    startY: y + 4,
+    head: [["№", "Наименование", "Цвет", "Кол-во, шт"]],
+    body: lastResult.semi.map((s, i) => [i + 1, s.name, s.color, s.qty]),
+    foot: [["", "", "ИТОГО:", lastResult.totalSemi]],
+    styles: { fontSize: 10 },
+    headStyles: { fillColor: [44, 123, 229] },
+    footStyles: { fillColor: [234, 243, 255], textColor: [0,0,0], fontStyle: 'bold' }
+  });
+
+  doc.save(`Заявка_${lastResult.timestamp.toISOString().slice(0,10)}.pdf`);
+}
+</script>
+</body>
+</html>
