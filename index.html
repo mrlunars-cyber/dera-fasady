@@ -1,15 +1,6 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<link rel="manifest" href="./manifest.json">
-
-<meta name="theme-color" content="#111827">
-
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="DeRa Фасады">
-<meta name="mobile-web-app-capable" content="yes">
 <meta charset="UTF-8">
 <title>Калькулятор заявок — Фасады</title>
 
@@ -25,17 +16,14 @@
   
   .card { background: #fff; border-radius: 8px; padding: 15px 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); margin-bottom: 20px; }
   
-  /* Ограничиваем ширину только карточки ввода, чтобы она не была на весь экран */
   .input-card { max-width: 550px; }
   
-  /* Жесткая фиксация ширины колонок, чтобы убрать пустоты (стрелочка) */
   table { width: 100%; border-collapse: collapse; font-size: 14px; table-layout: fixed; }
   th, td { padding: 8px 5px; text-align: left; border-bottom: 1px solid #eee; }
   
   th { background: #f0f3f7; font-weight: 600; font-size: 13px; color: #555; }
   tr:hover td { background: #fafbfc; }
   
-  /* Поля ввода и селекты */
   input[type=number] { width: 100%; max-width: 80px; padding: 6px 8px; font-size: 14px; border: 1px solid #ccc; border-radius: 4px; text-align: right; }
   input[type=number]::placeholder { color: #bbb; }
   select { width: 100%; padding: 6px 8px; font-size: 14px; border: 1px solid #ccc; border-radius: 4px; background: #fff; }
@@ -48,7 +36,6 @@
   .btn-danger { background: #dc3545; color: #fff; } .btn-danger:hover { background: #b02a37; }
   
   #results { display: none; }
-  /* Для таблиц с результатами возвращаем полную ширину и авто-раскладку */
   #results table { table-layout: auto; }
   
   .total-row { font-weight: 700; background: #eaf3ff !important; }
@@ -59,7 +46,21 @@
   .num { text-align: right; }
   .indent { padding-left: 15px !important; }
 
-  /* ================= ПЕЧАТЬ ================= */
+  .cut-settings { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:10px; margin:12px 0; }
+  .cut-settings label { display:flex; flex-direction:column; gap:4px; font-size:13px; color:#555; }
+  .cut-settings input, .cut-settings textarea { width:100%; padding:8px; border:1px solid #ccc; border-radius:5px; font:inherit; }
+  
+  .cut-card { border:1px solid #dce3eb; border-radius:7px; padding:12px; margin:12px 0; background:#fbfcfe; break-inside:avoid; }
+  .cut-card h3 { margin:0 0 8px; font-size:16px; }
+  .cut-step { display:flex; justify-content:space-between; gap:12px; padding:6px 0; border-bottom:1px dashed #ddd; }
+  .cut-step:last-child { border-bottom:0; }
+  .cut-summary { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:8px; margin:10px 0; }
+  .cut-stat { background:#f0f5fb; border-radius:6px; padding:10px; }
+  .cut-stat b { display:block; font-size:20px; margin-top:3px; }
+  .cut-small { font-size:12px; color:#666; }
+  
+  @media(max-width:600px) { body { padding:10px; } .card { padding:12px; } .cut-step { font-size:13px; } }
+
   @media print {
     @page { size: A4; margin: 12mm 10mm; }
     body { background: #fff !important; padding: 0 !important; font-size: 11px; color: #000; }
@@ -87,13 +88,11 @@
 
   <h1>Калькулятор заявок — Фасады</h1>
 
-  <!-- Добавлен класс input-card для ограничения ширины -->
   <div class="card input-card no-print">
     <h2 style="margin-top:0">1. Введите количество по фасадам</h2>
     <div class="info-block">Пустые поля считаются как 0 и не участвуют в расчёте.</div>
     <table>
       <colgroup>
-        <!-- Жестко задаем проценты ширины для колонок -->
         <col style="width: 10%;">
         <col style="width: 35%;">
         <col style="width: 35%;">
@@ -124,6 +123,7 @@
           <tr>
             <th>Цвет / Размер, мм</th>
             <th class="num" style="width:120px">Кол-во, шт</th>
+            <th style="width:100%"></th>
           </tr>
         </thead>
         <tbody id="glassBody"></tbody>
@@ -140,10 +140,32 @@
             <th class="num" style="width:100px">Кол-во, шт</th>
             <th class="num" style="width:140px">Общая длина, мм</th>
             <th class="num" style="width:120px">Общая длина, м</th>
+            <th style="width:100%"></th>
           </tr>
         </thead>
         <tbody id="plankBody"></tbody>
       </table>
+    </div>
+
+    <div class="card" id="cuttingCard">
+      <h2 style="margin-top:0">6. Раскрой планок — карта для оператора</h2>
+      <div class="info-block">Программа распределяет детали по отдельным профилям. Каждый профиль раскраивается полностью, затем берётся следующий. Профили разных цветов не смешиваются.</div>
+      <div class="cut-settings">
+        <label>Длина нового профиля, мм<input type="number" id="stockLength" value="6000" min="1" oninput="buildCuttingPlan()"></label>
+        <label>Начальная торцовка, мм<input type="number" id="endTrim" value="40" min="0" oninput="buildCuttingPlan()"></label>
+        <label>Ширина пропила, мм<input type="number" id="kerf" value="4" min="0" oninput="buildCuttingPlan()"></label>
+        <label>Промежуток, мм<input type="number" id="spacing" value="5" min="0" oninput="buildCuttingPlan()"></label>
+        <label>Минимальный остаток, мм<input type="number" id="minRemnant" value="400" min="1" oninput="buildCuttingPlan()"></label>
+      </div>
+      <label style="display:block;font-size:13px;color:#555;margin:10px 0 5px">Остатки на складе — по одному в строке: ЦВЕТ;ДЛИНА (например: ЧЕРН;850)</label>
+      <textarea id="remnantInput" rows="3" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:5px;font:inherit" placeholder="ЧЕРН;850&#10;Белый;1200" oninput="buildCuttingPlan()"></textarea>
+      <div class="btns">
+        <button class="btn-primary" onclick="buildCuttingPlan()">СОСТАВИТЬ КАРТУ РАСКРОЯ</button>
+        <button class="btn-secondary" onclick="loadSavedRemnants()">ЗАГРУЗИТЬ СОХРАНЁННЫЕ ОСТАТКИ</button>
+        <button class="btn-success" onclick="saveCuttingRemnants()">СОХРАНИТЬ НОВЫЕ ОСТАТКИ</button>
+      </div>
+      <div id="cuttingSummary"></div>
+      <div id="cuttingOutput"></div>
     </div>
 
     <div class="card">
@@ -155,6 +177,7 @@
             <th>Тип пакетика</th>
             <th class="num" style="width:180px">Кол-во пакетиков, шт</th>
             <th class="num" style="width:160px">Всего петель, шт</th>
+            <th style="width:100%"></th>
           </tr>
         </thead>
         <tbody id="hingeBody"></tbody>
@@ -164,7 +187,7 @@
     <div class="card">
       <h2 style="margin-top:0">5. Полуфабрикаты (с учётом цвета)</h2>
       <table>
-        <thead><tr><th style="width:40px">№</th><th>Наименование</th><th>Цвет</th><th class="num" style="width:120px">Кол-во, шт</th></tr></thead>
+        <thead><tr><th style="width:40px">№</th><th>Наименование</th><th>Цвет</th><th class="num" style="width:120px">Кол-во, шт</th><th style="width:100%"></th></tr></thead>
         <tbody id="semiBody"></tbody>
       </table>
     </div>
@@ -194,15 +217,15 @@ const RECIPES = {
 
 const COLORS = ["ЧЕРН", "ЧЕРН, Браво", "Золото", "Белый"];
 
-// Новый порядок вывода в таблице
+// Новая последовательность фасадов
 const facadeNames = [
-  "Ф-20 AL", 
-  "Ф-20H AL", 
-  "Ф-46 AL", 
-  "Ф-46H AL", 
-  "Ф-30H AL", 
-  "Ф-92H AL", 
-  "Ф-91H AL", 
+  "Ф-20 AL",
+  "Ф-20H AL",
+  "Ф-30H AL",
+  "Ф-46 AL",
+  "Ф-46H AL",
+  "Ф-91H AL",
+  "Ф-92H AL",
   "Ф-554H AL"
 ];
 
@@ -304,7 +327,7 @@ function calculate() {
       })
       .sort((a, b) => b.area - a.area);
 
-    glassBody.innerHTML += `<tr class="color-header"><td colspan="2">Цвет: ${color}</td></tr>`;
+    glassBody.innerHTML += `<tr class="color-header"><td colspan="3">Цвет: ${color}</td></tr>`;
 
     let colorQty = 0;
     sizeEntries.forEach(g => {
@@ -312,12 +335,14 @@ function calculate() {
       glassBody.innerHTML += `<tr>
         <td class="indent">${g.w} × ${g.h}</td>
         <td class="num">${g.qty}</td>
+        <td></td>
       </tr>`;
     });
 
     glassBody.innerHTML += `<tr class="color-subtotal">
       <td>Итого стекла ${color}:</td>
       <td class="num">${colorQty}</td>
+      <td></td>
     </tr>`;
 
     glassGrandQty += colorQty;
@@ -326,6 +351,7 @@ function calculate() {
   glassBody.innerHTML += `<tr class="grand-total">
     <td>ВСЕГО СТЕКЛА:</td>
     <td class="num">${glassGrandQty}</td>
+    <td></td>
   </tr>`;
 
   /* ---- ПЛАНКИ ---- */
@@ -342,7 +368,7 @@ function calculate() {
       .map(([s, q]) => ({ size: parseInt(s), qty: q }))
       .sort((a, b) => b.size - a.size);
 
-    plankBody.innerHTML += `<tr class="color-header"><td colspan="4">Цвет: ${color}</td></tr>`;
+    plankBody.innerHTML += `<tr class="color-header"><td colspan="5">Цвет: ${color}</td></tr>`;
 
     let colorQty = 0, colorMm = 0;
     sizeEntries.forEach(p => {
@@ -354,6 +380,7 @@ function calculate() {
         <td class="num">${p.qty}</td>
         <td class="num">${lineMm.toLocaleString('ru-RU')}</td>
         <td class="num">${(lineMm/1000).toFixed(3).replace('.', ',')}</td>
+        <td></td>
       </tr>`;
     });
 
@@ -362,6 +389,7 @@ function calculate() {
       <td class="num">${colorQty}</td>
       <td class="num">${colorMm.toLocaleString('ru-RU')}</td>
       <td class="num">${(colorMm/1000).toFixed(3).replace('.', ',')}</td>
+      <td></td>
     </tr>`;
 
     grandQty += colorQty;
@@ -373,6 +401,7 @@ function calculate() {
     <td class="num">${grandQty}</td>
     <td class="num">${grandMm.toLocaleString('ru-RU')}</td>
     <td class="num">${(grandMm/1000).toFixed(3).replace('.', ',')}</td>
+    <td></td>
   </tr>`;
 
   /* ---- ФУРНИТУРА ---- */
@@ -389,6 +418,7 @@ function calculate() {
       <td>Пакетик с ${h} петлями</td>
       <td class="num">${p.packets}</td>
       <td class="num">${p.totalHinges}</td>
+      <td></td>
     </tr>`;
   });
 
@@ -396,6 +426,7 @@ function calculate() {
     <td>ИТОГО пакетиков:</td>
     <td class="num">${totalPackets}</td>
     <td class="num">${totalHingesAll}</td>
+    <td></td>
   </tr>`;
 
   /* ---- ПОЛУФАБРИКАТЫ ---- */
@@ -404,9 +435,9 @@ function calculate() {
   const semiEntries = Object.entries(semiMap).sort((a,b) => a[0].localeCompare(b[0]));
   semiEntries.forEach(([key, qty], idx) => {
     const [name, color] = key.split('||');
-    semiBody.innerHTML += `<tr><td>${idx+1}</td><td>${name}</td><td>${color}</td><td class="num">${qty}</td></tr>`;
+    semiBody.innerHTML += `<tr><td>${idx+1}</td><td>${name}</td><td>${color}</td><td class="num">${qty}</td><td></td></tr>`;
   });
-  semiBody.innerHTML += `<tr class="total-row"><td colspan="3">ИТОГО полуфабрикатов</td><td class="num">${totalSemi}</td></tr>`;
+  semiBody.innerHTML += `<tr class="total-row"><td colspan="4">ИТОГО полуфабрикатов</td><td class="num">${totalSemi}</td></tr>`;
 
   /* ---- СОХРАНЕНИЕ ---- */
   lastResult = {
@@ -445,7 +476,247 @@ function calculate() {
   };
 
   document.getElementById('results').style.display = 'block';
+  buildCuttingPlan();
   document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+}
+
+
+/* ============================================================
+   РАСКРОЙ ПЛАНОК
+   ============================================================ */
+let lastCuttingPlan = null;
+
+function readCutSettings() {
+  const val = id => Number(document.getElementById(id).value);
+  const cfg = {
+    stockLength: val('stockLength'),
+    trim: val('endTrim'),
+    kerf: val('kerf'),
+    spacing: val('spacing'),
+    minRemnant: val('minRemnant')
+  };
+  if (!(cfg.stockLength > 0) || cfg.trim < 0 || cfg.kerf < 0 || cfg.spacing < 0 || cfg.minRemnant < 1) {
+    throw new Error('Проверьте настройки раскроя: значения должны быть корректными.');
+  }
+  cfg.gap = cfg.kerf + cfg.spacing;
+  cfg.newCapacity = cfg.stockLength - cfg.trim;
+  if (cfg.newCapacity <= 0) throw new Error('Торцовка больше или равна длине профиля.');
+  return cfg;
+}
+
+function parseRemnants() {
+  const raw = document.getElementById('remnantInput').value.trim();
+  if (!raw) return [];
+  const result = [];
+  raw.split(/\r?\n/).forEach((line, i) => {
+    if (!line.trim()) return;
+    const parts = line.split(';').map(x => x.trim());
+    const color = parts[0];
+    const length = Number(parts[1]);
+    if (!color || !(length > 0)) throw new Error(`Ошибка в строке остатков №${i + 1}. Формат: ЦВЕТ;ДЛИНА`);
+    result.push({ color, length, source: 'Складской остаток' });
+  });
+  return result;
+}
+
+function packPiecesForColor(color, lines, cfg, remnants) {
+  const bins = [];
+  remnants.filter(r => r.color === color).sort((a,b) => a.length-b.length).forEach(r => {
+    bins.push({ color, source:r.source, capacity:r.length, pieces:[], used:0 });
+  });
+  const pieces = [];
+  lines.forEach(line => {
+    for (let i=0; i<line.qty; i++) pieces.push(line.size);
+  });
+  pieces.sort((a,b)=>b-a);
+
+  pieces.forEach(size => {
+    let best = null, bestWaste = Infinity;
+    bins.forEach(bin => {
+      const extra = bin.pieces.length ? cfg.gap : 0;
+      const need = size + extra;
+      const remaining = bin.capacity - bin.used;
+      if (need <= remaining && remaining - need < bestWaste) {
+        best = bin; bestWaste = remaining - need;
+      }
+    });
+    if (!best) {
+      best = { color, source:'Новый профиль', capacity:cfg.newCapacity, pieces:[], used:0 };
+      bins.push(best);
+    }
+    const extra = best.pieces.length ? cfg.gap : 0;
+    best.used += extra + size;
+    best.pieces.push(size);
+  });
+
+  return bins.filter(b=>b.pieces.length).map((b,idx)=>{
+    const counts = {};
+    b.pieces.forEach(size=>counts[size]=(counts[size]||0)+1);
+    const sizes = Object.keys(counts).map(Number).sort((a,b)=>b-a);
+    return {
+      color, source:b.source, capacity:b.capacity, used:b.used,
+      remainder:b.capacity-b.used, counts, sizes,
+      pieceCount:b.pieces.length,
+      internalSetups:Math.max(0,sizes.length-1),
+      steps:sizes.map(size=>({size,qty:counts[size]}))
+    };
+  });
+}
+
+function buildCuttingPlan() {
+  if (!lastResult) return;
+  try {
+    const cfg = readCutSettings();
+    const remnants = parseRemnants();
+    const groups = lastResult.planksByColor;
+    const bars = [];
+    groups.forEach(group => {
+      bars.push(...packPiecesForColor(group.color, group.lines, cfg, remnants));
+    });
+
+    const ordered = [];
+    const pool = bars.slice();
+    let previousEnd = null;
+    while (pool.length) {
+      let index = 0;
+      if (previousEnd !== null) {
+        const match = pool.findIndex(b => b.steps[0].size === previousEnd);
+        if (match >= 0) index = match;
+      }
+      const next = pool.splice(index,1)[0];
+      ordered.push(next);
+      previousEnd = next.steps[next.steps.length-1].size;
+    }
+
+    let transitionsInside = ordered.reduce((sum,b)=>sum+b.internalSetups,0);
+    let transitionsBetween = 0;
+    for (let i=1;i<ordered.length;i++) {
+      const prev=ordered[i-1], cur=ordered[i];
+      if (prev.color !== cur.color || prev.steps[prev.steps.length-1].size !== cur.steps[0].size) transitionsBetween++;
+    }
+    const newBars = ordered.filter(b=>b.source==='Новый профиль').length;
+    const usedRemnants = ordered.length-newBars;
+    const totalPieces = ordered.reduce((s,b)=>s+b.pieceCount,0);
+    
+    // --- ГРУППИРОВКА ОСТАТКОВ ---
+    const savedRaw = ordered.filter(b=>b.source==='Новый профиль' && b.remainder>=cfg.minRemnant)
+      .map(b=>({color:b.color, length:Math.floor(b.remainder)}));
+      
+    const groupedSaved = {};
+    savedRaw.forEach(r => {
+      const key = `${r.color};${r.length}`;
+      if (!groupedSaved[key]) groupedSaved[key] = { color: r.color, length: r.length, count: 0 };
+      groupedSaved[key].count++;
+    });
+    const saved = Object.values(groupedSaved);
+    // -----------------------------
+
+    const totalNewPurchase = newBars * cfg.stockLength;
+    const usedRemnantInput = ordered.filter(b=>b.source==='Складской остаток').reduce((sum,b)=>sum+b.capacity,0);
+    const totalInputLength = totalNewPurchase + usedRemnantInput;
+    const initialTrimLoss = newBars * cfg.trim;
+    const gapsLoss = ordered.reduce((sum,b)=>sum+Math.max(0,b.pieceCount-1)*cfg.gap,0);
+    const finalScrap = ordered.reduce((sum,b)=>sum+b.remainder,0);
+    const wastePct = totalInputLength ? (initialTrimLoss+gapsLoss+finalScrap)/totalInputLength*100 : 0;
+
+    lastCuttingPlan = {cfg, ordered, saved, transitionsInside, transitionsBetween, newBars, usedRemnants, totalPieces, wastePct};
+
+    const summary = document.getElementById('cuttingSummary');
+    summary.innerHTML = `
+      <div class="cut-summary">
+        <div class="cut-stat">Новых профилей<b>${newBars}</b></div>
+        <div class="cut-stat">Остатков со склада<b>${usedRemnants}</b></div>
+        <div class="cut-stat">Деталей<b>${totalPieces}</b></div>
+        <div class="cut-stat">Смен упора внутри профилей<b>${transitionsInside}</b></div>
+        <div class="cut-stat">Переходов между профилями<b>${transitionsBetween}</b></div>
+        <div class="cut-stat">Расчётный отход материала<b>${wastePct.toFixed(2).replace('.',',')}%</b></div>
+      </div>
+      <div class="cut-small">В расчёте: пропил ${cfg.kerf} мм + промежуток ${cfg.spacing} мм = ${cfg.gap} мм между соседними деталями. Новые профили после торцовки: ${cfg.newCapacity} мм.</div>
+      <p><b>Порядок работы:</b> возьмите нужное количество новых профилей и раскроите их по шагам, указанным в карточках ниже.</p>
+    `;
+
+    // --- ОБЪЕДИНЕНИЕ ОДИНАКОВЫХ ПРОФИЛЕЙ В КАРТОЧКИ ---
+    const groupedBars = [];
+    ordered.forEach(bar => {
+      const signature = JSON.stringify({
+        color: bar.color,
+        source: bar.source,
+        steps: bar.steps,
+        remainder: bar.remainder,
+        capacity: bar.capacity
+      });
+      const existing = groupedBars.find(g => g.signature === signature);
+      if (existing) {
+        existing.count++;
+      } else {
+        groupedBars.push({
+          ...bar,
+          signature,
+          count: 1
+        });
+      }
+    });
+
+    const output = document.getElementById('cuttingOutput');
+    output.innerHTML = '';
+    
+    groupedBars.forEach((bar) => {
+      const steps = bar.steps.map((step,j)=>`
+        <div class="cut-step">
+          <span><b>Шаг ${j+1}.</b> Выставить упор ${step.size} мм и отрезать ${step.qty} шт.</span>
+          <b>${step.size} × ${step.qty}</b>
+        </div>`).join('');
+        
+      // Убираем нумерацию, пишем просто количество профилей
+      const title = `${bar.count} ${bar.count === 1 ? 'профиль' : (bar.count > 1 && bar.count < 5 ? 'профиля' : 'профилей')}`;
+
+      output.innerHTML += `
+        <div class="cut-card">
+          <h3>${title} — ${bar.color}</h3>
+          <div class="cut-small">${bar.source} · Доступная длина: ${bar.capacity} мм · Деталей в одном: ${bar.pieceCount}</div>
+          ${steps}
+          <div class="cut-step"><span><b>Остаток после раскроя</b></span><b>${bar.remainder} мм</b></div>
+        </div>`;
+    });
+    // ------------------------------------------------
+
+    const savedText = saved.length
+      ? saved.map(r=>`${r.color};${r.length} — ${r.count} шт.`).join('\n')
+      : 'Нет остатков, подходящих под заданный минимальный размер.';
+      
+    output.innerHTML += `<div class="cut-note" style="background:#f0f5fb;border-left:4px solid #2c7be5;"><b>Остатки для сохранения:</b><br>${savedText.replace(/\n/g,'<br>')}<br><span class="cut-small">Остатки со складских заготовок в список новых остатков не включаются автоматически.</span></div>`;
+  } catch (err) {
+    alert(err.message || 'Не удалось составить карту раскроя.');
+  }
+}
+
+function loadSavedRemnants() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('deraCutRemnants') || '[]');
+    document.getElementById('remnantInput').value = saved.map(r=>`${r.color};${r.length}`).join('\n');
+    buildCuttingPlan();
+    alert(saved.length ? `Загружено остатков: ${saved.length}` : 'Сохранённых остатков пока нет.');
+  } catch(e) {
+    alert('Не удалось прочитать сохранённые остатки.');
+  }
+}
+
+function saveCuttingRemnants() {
+  if (!lastCuttingPlan) {
+    alert('Сначала составьте карту раскроя.');
+    return;
+  }
+  const existing = parseRemnants();
+  const newRemnants = [];
+  lastCuttingPlan.saved.forEach(r => {
+    for (let i=0; i<r.count; i++) {
+      newRemnants.push({ color: r.color, length: r.length });
+    }
+  });
+  
+  const combined = existing.concat(newRemnants);
+  localStorage.setItem('deraCutRemnants', JSON.stringify(combined));
+  alert(`Сохранено остатков: ${newRemnants.length}. При следующем расчёте нажмите «Загрузить сохранённые остатки».`);
 }
 
 /* ============================================================
@@ -458,6 +729,10 @@ function clearAll() {
   });
   document.getElementById('results').style.display = 'none';
   lastResult = null;
+  lastCuttingPlan = null;
+  document.getElementById('cuttingSummary').innerHTML = '';
+  document.getElementById('cuttingOutput').innerHTML = '';
+  document.getElementById('remnantInput').value = '';
 }
 
 /* ============================================================
@@ -550,16 +825,63 @@ function downloadPDF() {
     footStyles: { fillColor: [234, 243, 255], textColor: [0,0,0], fontStyle: 'bold' }
   });
 
+  // 5. Карта раскроя
+  if (lastCuttingPlan && lastCuttingPlan.ordered.length) {
+    doc.addPage();
+    doc.setFontSize(14);
+    doc.text("5. Карта раскроя планок", 14, 15);
+    doc.setFontSize(9);
+    doc.text(`Профиль: ${lastCuttingPlan.cfg.stockLength} мм; торцовка: ${lastCuttingPlan.cfg.trim} мм; пропил: ${lastCuttingPlan.cfg.kerf} мм; промежуток: ${lastCuttingPlan.cfg.spacing} мм`, 14, 22);
+    
+    // В PDF тоже группируем для компактности
+    const groupedPdfBars = [];
+    lastCuttingPlan.ordered.forEach((bar) => {
+      const signature = JSON.stringify({ color: bar.color, source: bar.source, steps: bar.steps, remainder: bar.remainder, capacity: bar.capacity });
+      const existing = groupedPdfBars.find(g => g.signature === signature);
+      if (existing) {
+        existing.count++;
+      } else {
+        groupedPdfBars.push({ ...bar, signature, count: 1 });
+      }
+    });
+
+    doc.autoTable({
+      startY: 28,
+      head: [["Кол-во", "Цвет", "Источник", "Порядок резки", "Остаток, мм"]],
+      body: groupedPdfBars.map(b => {
+        return [
+          `${b.count} шт.`,
+          b.color,
+          b.source,
+          b.steps.map(st => `${st.size} мм × ${st.qty} шт.`).join("; "),
+          b.remainder
+        ];
+      }),
+      styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak' },
+      headStyles: { fillColor: [44, 123, 229] },
+      columnStyles: { 0:{cellWidth:16}, 1:{cellWidth:25}, 2:{cellWidth:28}, 3:{cellWidth:'auto'}, 4:{cellWidth:20} }
+    });
+    
+    const cutY = doc.lastAutoTable.finalY + 8;
+    doc.setFontSize(9);
+    doc.text(`Новых профилей: ${lastCuttingPlan.newBars}; складских остатков использовано: ${lastCuttingPlan.usedRemnants}; деталей: ${lastCuttingPlan.totalPieces}; смен упора: ${lastCuttingPlan.transitionsInside}; переходов: ${lastCuttingPlan.transitionsBetween}; расчётный отход: ${lastCuttingPlan.wastePct.toFixed(2)}%`, 14, cutY, { maxWidth: 180 });
+
+    if (lastCuttingPlan.saved.length) {
+      const sY = doc.lastAutoTable.finalY + 15;
+      doc.setFontSize(10);
+      doc.text("Остатки для сохранения на склад:", 14, sY);
+      doc.autoTable({
+        startY: sY + 4,
+        head: [["Цвет", "Длина, мм", "Кол-во"]],
+        body: lastCuttingPlan.saved.map(r => [r.color, r.length, r.count]),
+        styles: { fontSize: 9 },
+        headStyles: { fillColor: [44, 123, 229] }
+      });
+    }
+  }
+
   doc.save(`Заявка_${lastResult.timestamp.toISOString().slice(0,10)}.pdf`);
 }
-</script>
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js')
-        .catch(error => console.error('Service Worker registration failed:', error));
-    });
-  }
 </script>
 </body>
 </html>
