@@ -31,24 +31,31 @@
 }
 
 *{box-sizing:border-box}
-html{color-scheme:light}
+html{color-scheme:light; max-width:100vw; overflow-x:hidden; -webkit-text-size-adjust:100%}
 body{
   font-family:'Inter','Segoe UI',Arial,sans-serif;
   background:linear-gradient(135deg,#f7f8fa 0%,#eef1f5 100%);
   color:var(--text);
-  margin:0; padding:24px 24px 84px;
+  margin:0;
+  padding:16px 12px 84px;
   min-height:100vh;
+  max-width:100vw;
+  overflow-x:hidden;
   -webkit-font-smoothing:antialiased;
   position:relative;
-  overflow-x:hidden;
 }
 
 #dustCanvas{
   position:fixed; inset:0; z-index:-1; pointer-events:none;
-  opacity:.55;
+  opacity:.5;
 }
 
-.container{max-width:1100px;margin:0 auto;position:relative}
+.container{
+  max-width:1100px;
+  margin:0 auto;
+  position:relative;
+  width:100%;
+}
 .input-card{max-width:600px}
 
 h2{
@@ -70,6 +77,8 @@ h2::before{
   margin-bottom:22px;
   transition:box-shadow .35s var(--ease), transform .35s var(--ease), border-color .35s var(--ease);
   position:relative;
+  width:100%;
+  max-width:100%;
 }
 .card:hover{ box-shadow:var(--shadow-lg); transform:translateY(-1px); }
 
@@ -84,16 +93,14 @@ h2::before{
 }
 @keyframes rotate{ to{ --a:360deg; } }
 
-/* ===== ШАПКА / БРЕНД ===== */
+/* ===== ШАПКА ===== */
 .topbar{
   display:flex; justify-content:space-between; align-items:center; gap:16px;
   margin-bottom:26px; flex-wrap:wrap;
   padding-bottom:18px;
   border-bottom:1px solid var(--line);
 }
-
 .brand{ display:flex; align-items:center; gap:16px; }
-
 .brand-mark{
   position:relative;
   font-size:28px; font-weight:800; letter-spacing:-.6px;
@@ -106,50 +113,32 @@ h2::before{
   line-height:1;
 }
 .brand-mark::after{
-  content:"";
-  position:absolute; right:-5px; bottom:-5px;
+  content:""; position:absolute; right:-5px; bottom:-5px;
   width:11px; height:11px; border-radius:50%;
   background:var(--accent);
   box-shadow:0 0 14px var(--accent), 0 0 0 3px #f4f6f8;
 }
-
-.brand-info{ display:flex; flex-direction:column; gap:3px; }
-
+.brand-info{ display:flex; flex-direction:column; gap:3px; min-width:0; }
 .brand-name{
   font-size:21px; font-weight:700; letter-spacing:.4px;
   background:linear-gradient(90deg,#26313d 0%,#566270 100%);
   -webkit-background-clip:text; background-clip:text; color:transparent;
   line-height:1.1;
 }
-
 .brand-tag{
   font-size:11px; font-weight:600;
   letter-spacing:1.8px; text-transform:uppercase;
   color:var(--text-dim); opacity:.85;
 }
-
 .developer-sign{
   margin-top:6px;
-  font-size:9px;
-  letter-spacing:1.6px;
-  font-weight:500;
-  color:#89939e;
-  opacity:.85;
-  text-transform:uppercase;
+  font-size:9px; letter-spacing:1.6px;
+  font-weight:500; color:#89939e;
+  opacity:.85; text-transform:uppercase;
 }
-.developer-sign span{
-  color:#d96d1c;
-  font-weight:700;
-}
+.developer-sign span{ color:#d96d1c; font-weight:700; }
 
-@media(max-width:600px){
-  .brand-tag{ display:none; }
-  .developer-sign{ font-size:8px; }
-  .brand-mark{ font-size:22px; padding:7px 12px; }
-  .brand-name{ font-size:17px; }
-}
-
-/* ===== ТАБЛИЦЫ (адаптивная сетка) ===== */
+/* ===== ТАБЛИЦЫ ===== */
 .table-wrap{
   width:100%;
   overflow-x:auto;
@@ -161,9 +150,14 @@ table{
   border-collapse:collapse;
   font-size:14px;
   table-layout:auto;
-  min-width:520px;
 }
-th,td{ padding:12px 14px; text-align:left; vertical-align:middle; border-bottom:1px solid #e7eaee; position:relative; }
+th,td{
+  padding:12px 14px;
+  text-align:left;
+  vertical-align:middle;
+  border-bottom:1px solid #e7eaee;
+  position:relative;
+}
 th{
   background:#f0f2f5; color:#647181;
   font-size:11px; text-transform:uppercase; letter-spacing:.5px;
@@ -193,14 +187,14 @@ tr.filled::before{ background:var(--accent); transform:scaleY(.5); opacity:.6; }
   white-space:nowrap;
 }
 
-.color-cell{ display:flex; align-items:center; gap:10px; }
+.color-cell{ display:flex; align-items:center; gap:10px; min-width:0; }
 .color-dot{
   width:16px; height:16px; border-radius:50%;
   flex:none; box-shadow:inset 0 0 0 1px rgba(0,0,0,.12);
   transition:background-color .3s var(--ease);
 }
 
-/* ===== ПОЛЯ ВВОДА (крупные) ===== */
+/* ===== ПОЛЯ ВВОДА ===== */
 input[type=number]{
   width:100%; max-width:110px;
   text-align:right;
@@ -237,10 +231,7 @@ input:focus, select:focus, textarea:focus{
 }
 input::placeholder{ color:#a0a9b3; }
 
-.cut-settings label input{
-  font-size:15px;
-  padding:11px 12px;
-}
+.cut-settings label input{ font-size:15px; padding:11px 12px; }
 
 /* ===== ОШИБКИ ===== */
 .invalid{
@@ -263,6 +254,7 @@ button{
   letter-spacing:.3px;
   border:none; cursor:pointer; position:relative; overflow:hidden;
   transition:transform .15s var(--ease), box-shadow .25s var(--ease), background .2s;
+  font-family:inherit;
 }
 .btn-primary{
   background:linear-gradient(180deg,#ff984b,#ed741b);
@@ -284,7 +276,7 @@ button.done{ background:linear-gradient(180deg,#34c47a,#1ea75e) !important; colo
 
 .btns{ display:flex; gap:10px; flex-wrap:wrap; margin-top:15px; align-items:center; }
 
-/* ===== ПОДСВЕТКА ИТОГОВ ===== */
+/* ===== ИТОГИ ===== */
 .grand-total{
   background:linear-gradient(90deg,rgba(237,123,36,.15),rgba(237,123,36,.045)) !important;
   color:#87400f; font-weight:700;
@@ -366,7 +358,8 @@ tr.total-row:hover td{
   box-shadow:0 12px 30px rgba(31,45,61,.16);
   opacity:0; pointer-events:none; z-index:60;
   transition:opacity .3s var(--ease), transform .3s var(--ease);
-  font-size:13px; max-width:min(90vw, 520px);
+  font-size:13px; max-width:calc(100vw - 40px);
+  text-align:center;
 }
 .toast.on{ opacity:1; transform:translate(-50%,0); pointer-events:auto; }
 .toast.warn{ border-color:#e8c18e; }
@@ -384,6 +377,7 @@ tr.total-row:hover td{
   display:flex; flex-direction:column; gap:6px;
   font-size:12px; color:#687482;
   text-transform:uppercase; letter-spacing:.4px;
+  min-width:0;
 }
 
 .cut-card{
@@ -422,11 +416,12 @@ tr.total-row:hover td{
 }
 .cut-card-head h3{
   margin:0; font-size:15px; color:#a95012; font-weight:600;
+  min-width:0; overflow-wrap:anywhere;
 }
 .cut-card-meta{
   font-size:12px; color:#687482;
   margin-bottom:14px;
-  display:flex; flex-wrap:wrap; gap:12px;
+  display:flex; flex-wrap:wrap; gap:8px 12px;
 }
 .cut-card-meta span{ display:inline-flex; align-items:center; gap:5px; }
 .cut-card-meta b{ color:#344150; font-weight:600; }
@@ -452,7 +447,7 @@ tr.total-row:hover td{
   background:linear-gradient(180deg,#ff984b,#ed741b);
   box-shadow:0 2px 6px rgba(237,116,27,.22);
 }
-.step-text{ flex:1; color:#344150; }
+.step-text{ flex:1; color:#344150; min-width:0; }
 .step-text b{ color:#a95012; }
 .step-size{
   font-family:'Segoe UI',Arial,sans-serif;
@@ -464,6 +459,7 @@ tr.total-row:hover td{
   border-radius:6px;
   white-space:nowrap;
   border:1px solid rgba(237,123,36,.22);
+  flex:none;
 }
 
 .cut-remainder{
@@ -482,8 +478,8 @@ tr.total-row:hover td{
   font-size:13px;
   flex:none;
 }
-.cut-remainder .label{ flex:1; color:#687482; }
-.cut-remainder .value{ font-weight:700; color:#21884f; font-size:14px; }
+.cut-remainder .label{ flex:1; color:#687482; min-width:0; }
+.cut-remainder .value{ font-weight:700; color:#21884f; font-size:14px; flex:none; }
 .cut-remainder.low{ background:rgba(220,75,80,.055); border-color:rgba(220,75,80,.2); }
 .cut-remainder.low .icon{ background:rgba(220,75,80,.1); color:#dc4b50; }
 .cut-remainder.low .value{ color:#dc4b50; }
@@ -492,7 +488,7 @@ tr.total-row:hover td{
 .cut-stat{ background:#f4f6f8; border:1px solid #e1e5ea; border-radius:10px; padding:12px; font-size:11px; color:#687482; text-transform:uppercase; letter-spacing:.4px; }
 .cut-stat b{ display:block; font-size:22px; margin-top:6px; color:#c7651b; }
 .cut-small{ font-size:12px; color:#687482; }
-.cut-note{ background:var(--accent-soft) !important; border-left:4px solid var(--accent) !important; color:#344150; padding:12px 14px; border-radius:0 8px 8px 0; margin-top:12px; font-size:13px; }
+.cut-note{ background:var(--accent-soft) !important; border-left:4px solid var(--accent) !important; color:#344150; padding:12px 14px; border-radius:0 8px 8px 0; margin-top:12px; font-size:13px; overflow-wrap:anywhere; }
 
 .cut-progress{ height:3px; background:rgba(237,123,36,.1); border-radius:2px; overflow:hidden; margin:10px 0 0; }
 .cut-progress span{
@@ -515,9 +511,9 @@ tr.total-row:hover td{
   text-align:center; padding:36px 12px; color:#7b8794;
 }
 .empty-state b{ display:block; color:#344150; font-size:16px; margin-bottom:6px; }
-.empty-state svg{ opacity:.4; margin-bottom:12px; }
+.empty-state svg{ opacity:.4; margin-bottom:12px; max-width:100%; }
 
-/* ===== Нижний статус-бар ===== */
+/* ===== СТАТУС-БАР ===== */
 .status-bar{
   position:fixed; left:0; right:0; bottom:0; z-index:40;
   display:flex; align-items:center; gap:18px; flex-wrap:wrap;
@@ -537,23 +533,219 @@ tr.total-row:hover td{
 .status-bar .item.accent b{ color:#c7651b; }
 .status-bar .sep{ width:1px; height:14px; background:#dce2e8; }
 
-@media(max-width:600px){
-  body{ padding:12px 12px 100px; background:#f4f6f8; }
-  .card{ padding:14px; }
-  .cut-step{ font-size:12px; padding:8px 10px; }
-  .step-num{ width:22px; height:22px; font-size:11px; }
-  .step-size{ font-size:12px; padding:3px 8px; }
-  th, td{ padding:10px 8px; font-size:13px; }
-  input[type=number]{ font-size:15px; padding:10px 12px; }
-  select, textarea{ font-size:14px; padding:10px 12px; }
-  .status-bar{ font-size:12px; gap:10px; padding:8px 12px; }
+/* ============================================================
+   МОБИЛЬНАЯ ВЕРСИЯ (iPhone и т.п.)
+   ============================================================ */
+@media(max-width:640px){
+  body{
+    padding:12px 10px 96px;
+    background:#f4f6f8;
+  }
+  .card{
+    padding:16px 14px;
+    margin-bottom:16px;
+    border-radius:12px;
+    width:100%;
+    max-width:100%;
+  }
+  .input-card{ max-width:100%; }
+
+  .topbar{
+    margin-bottom:18px;
+    padding-bottom:14px;
+  }
+  .brand{ gap:12px; }
+  .brand-tag{ display:none; }
+  .developer-sign{ font-size:8px; margin-top:4px; }
+  .brand-mark{ font-size:22px; padding:8px 12px; border-radius:10px; }
+  .brand-name{ font-size:18px; }
+
+  h2{ font-size:13px; margin-bottom:12px; }
+  .info-block{ font-size:12px; margin-bottom:10px; }
+
+  /* Таблицы: аккуратный скролл внутри карточки */
+  .table-wrap{
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    border-radius:8px;
+    width:100%;
+    max-width:100%;
+  }
+  table{
+    width:100%;
+    min-width:100%;
+    font-size:12px;
+    table-layout:auto;
+  }
+  th, td{
+    padding:10px 8px;
+    font-size:12px;
+    white-space:normal;
+    word-break:break-word;
+  }
+  th{
+    font-size:10px;
+    letter-spacing:.3px;
+    padding:10px 8px;
+  }
+  /* Специально для длинных заголовков колонок */
+  th.num{ text-align:right; }
+
+  /* Входная таблица: номер компактный, цвет/кол-во — по ширине */
+  #inputBody td:nth-child(2){ white-space:normal; }
+  #inputBody td:first-child{ width:28px; padding-left:4px; padding-right:4px; text-align:center; }
+
+  /* Поля ввода */
+  input[type=number]{
+    font-size:15px;
+    padding:10px 8px;
+    max-width:72px;
+    text-align:center;
+  }
+  select{
+    font-size:13px;
+    padding:10px 8px;
+  }
+  .color-cell{ gap:8px; }
+  .color-dot{ width:14px; height:14px; }
+
+  /* Кнопки: на всю ширину, крупные */
+  .btns{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    margin-top:14px;
+  }
+  .btns button{
+    width:100%;
+    padding:14px 20px;
+    font-size:14px;
+  }
+  button{
+    padding:13px 18px;
+    font-size:13px;
+  }
+
+  /* Настройки раскроя — 2 колонки */
+  .cut-settings{
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin:12px 0;
+  }
+  .cut-settings label{
+    font-size:10px;
+    gap:4px;
+  }
+  .cut-settings label input{
+    font-size:13px;
+    padding:9px 8px;
+  }
+
+  /* Карточки раскроя */
+  .cut-card{
+    padding:14px 12px;
+    margin:12px 0;
+  }
+  .cut-card-head{
+    gap:8px;
+    padding-bottom:8px;
+    margin-bottom:10px;
+  }
+  .cut-card-head .icon{
+    width:24px; height:24px;
+    font-size:12px; border-radius:6px;
+  }
+  .cut-card-head h3{ font-size:13px; }
+  .cut-card-meta{
+    font-size:11px;
+    gap:6px 10px;
+    margin-bottom:10px;
+  }
+
+  /* Шаги: номер слева, текст переносится, размер — в конец */
+  .cut-step{
+    display:grid;
+    grid-template-columns:24px 1fr auto;
+    align-items:center;
+    gap:8px;
+    padding:8px 10px;
+    font-size:12px;
+  }
+  .step-num{
+    width:22px; height:22px;
+    font-size:11px;
+  }
+  .step-text{ font-size:12px; line-height:1.35; }
+  .step-size{
+    font-size:11px;
+    padding:3px 7px;
+    white-space:nowrap;
+  }
+
+  /* Остаток */
+  .cut-remainder{
+    padding:8px 10px;
+    font-size:12px;
+    gap:10px;
+    margin-top:10px;
+  }
+  .cut-remainder .icon{ width:20px; height:20px; font-size:12px; }
+  .cut-remainder .value{ font-size:13px; }
+
+  /* Сводка раскроя: 2 колонки */
+  .cut-summary{
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+  }
+  .cut-stat{
+    padding:10px 8px;
+    font-size:10px;
+    letter-spacing:.2px;
+  }
+  .cut-stat b{ font-size:18px; margin-top:4px; }
+
+  .cut-small{ font-size:11px; }
+  .cut-note{ font-size:12px; padding:10px 12px; }
+
+  /* Статус-бар: аккуратно, в 2 строки если нужно */
+  .status-bar{
+    font-size:11px;
+    gap:6px 14px;
+    padding:8px 12px;
+  }
   .status-bar .sep{ display:none; }
-  table{ min-width:460px; }
+  .status-bar .item{ white-space:nowrap; }
+
+  /* Toast на мобилке — по центру, не выходит за края */
+  .toast{
+    left:12px;
+    right:12px;
+    transform:translateY(20px);
+    max-width:none;
+    width:auto;
+    text-align:center;
+  }
+  .toast.on{ transform:translateY(0); }
 }
 
+/* Очень узкие экраны (iPhone SE 320px) */
+@media(max-width:360px){
+  body{ padding:10px 8px 90px; }
+  .card{ padding:14px 10px; }
+  .brand-mark{ font-size:20px; padding:6px 10px; }
+  .brand-name{ font-size:16px; }
+  h2{ font-size:12px; }
+  th, td{ padding:8px 6px; font-size:11px; }
+  input[type=number]{ max-width:60px; padding:9px 6px; }
+  .cut-summary{ grid-template-columns:1fr; }
+}
+
+/* ============================================================
+   ПЕЧАТЬ
+   ============================================================ */
 @media print{
   @page { size: A4; margin: 12mm 10mm; }
-  body{ background:#fff !important; color:#000 !important; padding:0 !important; font-size:11px; }
+  body{ background:#fff !important; color:#000 !important; padding:0 !important; font-size:11px; max-width:none; }
   #dustCanvas, .skeleton-card, .empty-state, .status-bar, .topbar{ display:none !important; }
   .container{ max-width:100%; }
   .btns, button, .no-print, .calc-overlay, .toast, .cut-progress, .card.busy::before{ display:none !important; }
@@ -613,10 +805,10 @@ tr.total-row:hover td{
       <table>
         <thead>
           <tr>
-            <th style="width:50px">№</th>
+            <th style="width:40px">№</th>
             <th>Наименование</th>
-            <th style="width:200px">Цвет</th>
-            <th style="width:150px" class="num">Кол-во</th>
+            <th style="width:180px">Цвет</th>
+            <th style="width:110px" class="num">Кол-во</th>
           </tr>
         </thead>
         <tbody id="inputBody"></tbody>
@@ -644,7 +836,7 @@ tr.total-row:hover td{
           <thead>
             <tr>
               <th>Цвет / Размер, мм</th>
-              <th class="num" style="width:140px">Кол-во, шт</th>
+              <th class="num" style="width:120px">Кол-во, шт</th>
             </tr>
           </thead>
           <tbody id="glassBody"></tbody>
@@ -660,9 +852,9 @@ tr.total-row:hover td{
           <thead>
             <tr>
               <th>Цвет / Длина, мм</th>
-              <th class="num" style="width:110px">Кол-во, шт</th>
-              <th class="num" style="width:160px">Общая длина, мм</th>
-              <th class="num" style="width:150px">Общая длина, м</th>
+              <th class="num" style="width:90px">Кол-во, шт</th>
+              <th class="num" style="width:120px">Длина, мм</th>
+              <th class="num" style="width:110px">Длина, м</th>
             </tr>
           </thead>
           <tbody id="plankBody"></tbody>
@@ -700,8 +892,8 @@ tr.total-row:hover td{
           <thead>
             <tr>
               <th>Тип пакетика</th>
-              <th class="num" style="width:200px">Кол-во пакетиков, шт</th>
-              <th class="num" style="width:180px">Всего петель, шт</th>
+              <th class="num" style="width:160px">Кол-во пакетиков, шт</th>
+              <th class="num" style="width:140px">Всего петель, шт</th>
             </tr>
           </thead>
           <tbody id="hingeBody"></tbody>
@@ -715,10 +907,10 @@ tr.total-row:hover td{
         <table>
           <thead>
             <tr>
-              <th style="width:50px">№</th>
+              <th style="width:40px">№</th>
               <th>Наименование</th>
               <th>Цвет</th>
-              <th class="num" style="width:120px">Кол-во, шт</th>
+              <th class="num" style="width:100px">Кол-во, шт</th>
             </tr>
           </thead>
           <tbody id="semiBody"></tbody>
@@ -759,7 +951,7 @@ tr.total-row:hover td{
 
 <script>
 /* ============================================================
-   ЗВУК (Web Audio API)
+   ЗВУК
    ============================================================ */
 const Sound = (() => {
   let ctx = null;
@@ -807,7 +999,7 @@ const Sound = (() => {
 })();
 
 /* ============================================================
-   AMBIENT-ЧАСТИЦЫ
+   ЧАСТИЦЫ
    ============================================================ */
 (function initDust(){
   const canvas = document.getElementById('dustCanvas');
@@ -815,7 +1007,7 @@ const Sound = (() => {
   const ctx = canvas.getContext('2d');
   let w, h, particles = [];
   const mouse = { x: -9999, y: -9999 };
-  const COUNT = window.innerWidth < 600 ? 16 : 28;
+  const COUNT = window.innerWidth < 600 ? 14 : 28;
 
   function resize(){
     w = canvas.width = window.innerWidth;
@@ -862,7 +1054,6 @@ const Sound = (() => {
 
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      // мягкие тёмно-серые пылинки для светлой темы
       ctx.fillStyle = `rgba(80, 95, 110, ${p.a * 0.35})`;
       ctx.fill();
     });
@@ -907,9 +1098,6 @@ const facadeNames = [
   "Ф-46H AL", "Ф-91H AL", "Ф-92H AL", "Ф-554H AL"
 ];
 
-/* ============================================================
-   TOAST
-   ============================================================ */
 function toast(msg, type){
   let t = document.getElementById('toast');
   if (!t){
@@ -923,9 +1111,6 @@ function toast(msg, type){
   t._timer = setTimeout(() => t.classList.remove('on'), 3200);
 }
 
-/* ============================================================
-   СЧЁТЧИКИ
-   ============================================================ */
 function countUp(el, to, dur){
   dur = dur || 600;
   const from = 0, start = performance.now();
@@ -996,7 +1181,7 @@ function getQty(i) {
 }
 
 /* ============================================================
-   «ЖИВАЯ» СВОДКА
+   ЖИВАЯ СВОДКА
    ============================================================ */
 function computeLiveSummary(){
   let parts = 0, semi = 0;
@@ -1133,7 +1318,6 @@ function calculate() {
 
   const colorsOrder = COLORS.filter(c => glassByColor[c] || plankByColor[c]);
 
-  /* ---- СТЕКЛО ---- */
   const glassBody = document.getElementById('glassBody');
   glassBody.innerHTML = '';
   let glassGrandQty = 0;
@@ -1163,7 +1347,6 @@ function calculate() {
     <td class="num"><span data-count="${glassGrandQty}">0</span>${renderDelta(deltaGlass)}</td>
   </tr>`;
 
-  /* ---- ПЛАНКИ ---- */
   const plankBody = document.getElementById('plankBody');
   plankBody.innerHTML = '';
   let grandQty = 0;
@@ -1206,7 +1389,6 @@ function calculate() {
     <td class="num">${(grandMm/1000).toFixed(3).replace('.', ',')}</td>
   </tr>`;
 
-  /* ---- ФУРНИТУРА ---- */
   const hingeBody = document.getElementById('hingeBody');
   hingeBody.innerHTML = '';
   const hingeKeys = Object.keys(hingePackets).map(Number).sort((a, b) => a - b);
@@ -1229,7 +1411,6 @@ function calculate() {
     <td class="num"><span data-count="${totalHingesAll}">0</span></td>
   </tr>`;
 
-  /* ---- ПОЛУФАБРИКАТЫ ---- */
   const semiBody = document.getElementById('semiBody');
   semiBody.innerHTML = '';
   const semiEntries = Object.entries(semiMap).sort((a,b) => a[0].localeCompare(b[0]));
@@ -1242,7 +1423,6 @@ function calculate() {
     <td class="num"><span data-count="${totalSemi}">0</span></td>
   </tr>`;
 
-  /* ---- СОХРАНЕНИЕ ---- */
   lastResult = {
     glassByColor: colorsOrder
       .filter(c => glassByColor[c])
@@ -1292,9 +1472,6 @@ function renderDelta(d){
   return `<span class="delta ${cls}">${sign}${d}</span>`;
 }
 
-/* ============================================================
-   ОБЁРТКА С АНИМАЦИЕЙ + SKELETON
-   ============================================================ */
 function runCalculation(){
   const overlay = document.getElementById('calcOverlay');
   const skeleton = document.getElementById('skeleton');
@@ -1341,7 +1518,7 @@ function runCalculation(){
 }
 
 /* ============================================================
-   РАСКРОЙ ПЛАНОК
+   РАСКРОЙ
    ============================================================ */
 let lastCuttingPlan = null;
 
@@ -1517,7 +1694,6 @@ function buildCuttingPlan() {
     output.innerHTML = '';
 
     groupedBars.forEach((bar, idx) => {
-      // Шаги: номер + текст «Упор на X мм»
       const steps = bar.steps.map((step,j)=>`
         <div class="cut-step">
           <div class="step-num">${j+1}</div>
@@ -1570,9 +1746,6 @@ function buildCuttingPlan() {
   }
 }
 
-/* ============================================================
-   СОХРАНЕНИЕ / ЗАГРУЗКА ОСТАТКОВ
-   ============================================================ */
 function loadSavedRemnants() {
   try {
     const saved = JSON.parse(localStorage.getItem('deraCutRemnants') || '[]');
@@ -1612,9 +1785,6 @@ function saveCuttingRemnants() {
   updateLiveSummary();
 }
 
-/* ============================================================
-   ОЧИСТКА
-   ============================================================ */
 function clearAll() {
   facadeNames.forEach((_, i) => {
     document.getElementById(`qty_${i}`).value = '';
@@ -1783,7 +1953,7 @@ function downloadPDF() {
 }
 
 /* ============================================================
-   МИКРОЭФФЕКТЫ И ИНИЦИАЛИЗАЦИЯ
+   МИКРОЭФФЕКТЫ
    ============================================================ */
 document.addEventListener('pointerdown', e => {
   const b = e.target.closest('button');
