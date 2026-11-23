@@ -880,7 +880,7 @@ input::placeholder{color:#a0a9b3}
         <thead>
           <tr>
             <th style="width:50px">№</th>
-            <th>Наименование</th>
+            <th>Фасад</th>
             <th style="width:200px">Цвет</th>
             <th style="width:150px" class="num">Кол-во</th>
           </tr>
@@ -982,7 +982,7 @@ input::placeholder{color:#a0a9b3}
           <thead>
             <tr>
               <th style="width:50px">№</th>
-              <th>Наименование</th>
+              <th>Фасад</th>
               <th>Цвет</th>
               <th class="num" style="width:120px">Кол-во, шт</th>
             </tr>
@@ -1981,7 +1981,7 @@ function downloadPDF() {
   doc.text("4. Полуфабрикаты (с учётом цвета)", 14, y);
   doc.autoTable({
     startY: y + 4,
-    head: [["№", "Наименование", "Цвет", "Кол-во, шт"]],
+    head: [["№", "Фасад", "Цвет", "Кол-во, шт"]],
     body: lastResult.semi.map((s, i) => [i + 1, s.name, s.color, s.qty]),
     foot: [["", "", "ИТОГО:", lastResult.totalSemi]],
     styles: { fontSize: 10 },
