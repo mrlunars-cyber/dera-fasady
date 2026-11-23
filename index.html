@@ -4,149 +4,670 @@
 <link rel="apple-touch-icon" href="./apple-touch-icon.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta charset="UTF-8">
-<title>Калькулятор заявок — Фасады</title>
+<title>DeRa — AL Фасады | Калькулятор заявок</title>
 
 <script src="jspdf.umd.min.js"></script>
 <script src="jspdf.plugin.autotable.min.js"></script>
 
 <style>
-  * { box-sizing: border-box; }
-  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f8; margin: 0; padding: 20px; color: #222; }
-  .container { max-width: 1100px; margin: 0 auto; }
-  h1 { font-size: 22px; margin: 0 0 15px; }
-  h2 { font-size: 18px; margin: 25px 0 10px; color: #333; border-bottom: 2px solid #2c7be5; padding-bottom: 5px; }
-  
-  .card { background: #fff; border-radius: 8px; padding: 15px 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); margin-bottom: 20px; }
-  
-  .input-card { max-width: 550px; }
-  
-  table { width: 100%; border-collapse: collapse; font-size: 14px; table-layout: fixed; }
-  th, td { padding: 8px 5px; text-align: left; border-bottom: 1px solid #eee; }
-  
-  th { background: #f0f3f7; font-weight: 600; font-size: 13px; color: #555; }
-  tr:hover td { background: #fafbfc; }
-  
-  input[type=number] { width: 100%; max-width: 80px; padding: 6px 8px; font-size: 14px; border: 1px solid #ccc; border-radius: 4px; text-align: right; }
-  input[type=number]::placeholder { color: #bbb; }
-  select { width: 100%; padding: 6px 8px; font-size: 14px; border: 1px solid #ccc; border-radius: 4px; background: #fff; }
-  
-  .btns { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px; }
-  button { padding: 10px 20px; font-size: 14px; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; transition: 0.2s; }
-  .btn-primary { background: #2c7be5; color: #fff; } .btn-primary:hover { background: #1a68d1; }
-  .btn-secondary { background: #e3e7ec; color: #333; } .btn-secondary:hover { background: #d0d5db; }
-  .btn-success { background: #28a745; color: #fff; } .btn-success:hover { background: #1e7e34; }
-  .btn-danger { background: #dc3545; color: #fff; } .btn-danger:hover { background: #b02a37; }
-  
-  #results { display: none; }
-  #results table { table-layout: auto; }
-  
-  .total-row { font-weight: 700; background: #eaf3ff !important; }
-  .color-header { background: #f8f5ff !important; font-weight: 700; color: #6f42c1; }
-  .color-subtotal { background: #f0eaff !important; font-weight: 600; }
-  .grand-total { background: #d9ecff !important; font-weight: 700; font-size: 15px; }
-  .info-block { font-size: 13px; color: #666; margin-bottom: 10px; }
-  .num { text-align: right; }
-  .indent { padding-left: 15px !important; }
+:root{
+  --bg:#f4f6f8;
+  --surface:#ffffff;
+  --surface-2:#ffffff;
+  --surface-3:#f1f3f6;
+  --line:#e1e5ea;
+  --text:#26313d;
+  --text-dim:#687482;
+  --accent:#ed7b24;
+  --accent-soft:rgba(237,123,36,.10);
+  --accent-glow:0 0 0 3px rgba(237,123,36,.13), 0 6px 18px rgba(237,123,36,.12);
+  --danger:#dc4b50;
+  --success:#239b59;
+  --shadow-md:0 5px 18px rgba(31,45,61,.08), 0 1px 4px rgba(31,45,61,.05);
+  --shadow-lg:0 14px 34px rgba(31,45,61,.12), 0 4px 10px rgba(31,45,61,.06);
+  --radius:14px;
+  --radius-sm:9px;
+  --ease:cubic-bezier(.22,.8,.3,1);
+}
 
-  .cut-settings { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:10px; margin:12px 0; }
-  .cut-settings label { display:flex; flex-direction:column; gap:4px; font-size:13px; color:#555; }
-  .cut-settings input, .cut-settings textarea { width:100%; padding:8px; border:1px solid #ccc; border-radius:5px; font:inherit; }
-  
-  .cut-card { border:1px solid #dce3eb; border-radius:7px; padding:12px; margin:12px 0; background:#fbfcfe; break-inside:avoid; }
-  .cut-card h3 { margin:0 0 8px; font-size:16px; }
-  .cut-step { display:flex; justify-content:space-between; gap:12px; padding:6px 0; border-bottom:1px dashed #ddd; }
-  .cut-step:last-child { border-bottom:0; }
-  .cut-summary { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:8px; margin:10px 0; }
-  .cut-stat { background:#f0f5fb; border-radius:6px; padding:10px; }
-  .cut-stat b { display:block; font-size:20px; margin-top:3px; }
-  .cut-small { font-size:12px; color:#666; }
-  
-  @media(max-width:600px) { body { padding:10px; } .card { padding:12px; } .cut-step { font-size:13px; } }
+*{box-sizing:border-box}
+html{color-scheme:light}
+body{
+  font-family:'Inter','Segoe UI',Arial,sans-serif;
+  background:linear-gradient(135deg,#f7f8fa 0%,#eef1f5 100%);
+  color:var(--text);
+  margin:0; padding:24px 24px 84px;
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+  position:relative;
+  overflow-x:hidden;
+}
 
-  @media print {
-    @page { size: A4; margin: 12mm 10mm; }
-    body { background: #fff !important; padding: 0 !important; font-size: 11px; color: #000; }
-    .container { max-width: 100%; }
-    .btns, button, .no-print { display: none !important; }
-    .card { box-shadow: none !important; border: 1px solid #ccc; border-radius: 0; padding: 8px 10px; margin-bottom: 12px; break-inside: avoid; page-break-inside: avoid; }
-    h2 { break-after: avoid; page-break-after: avoid; margin: 0 0 6px; font-size: 14px; }
-    table { font-size: 10px; table-layout: auto !important; }
-    thead { display: table-header-group; }
-    tfoot { display: table-footer-group; }
-    tr { break-inside: avoid; page-break-inside: avoid; }
-    th, td { padding: 4px 6px; border-bottom: 1px solid #ddd; }
-    th { background: #eee !important; color: #000; }
-    .grand-total { background: #e6f0ff !important; }
-    .color-header { background: #f3efff !important; }
-    .color-subtotal { background: #ece6ff !important; }
-    .total-row { background: #e6f0ff !important; }
-    tr:hover td { background: transparent !important; }
-    h1 { font-size: 16px; margin: 0 0 10px; }
-  }
+#dustCanvas{
+  position:fixed; inset:0; z-index:-1; pointer-events:none;
+  opacity:.55;
+}
+
+.container{max-width:1100px;margin:0 auto;position:relative}
+.input-card{max-width:600px}
+
+h2{
+  font-size:15px; letter-spacing:.4px; text-transform:uppercase;
+  margin:0 0 14px; color:#586574; font-weight:600;
+  display:flex; align-items:center; gap:10px;
+}
+h2::before{
+  content:""; width:3px; height:14px; border-radius:2px;
+  background:var(--accent); box-shadow:0 0 12px var(--accent);
+}
+
+.card{
+  background:linear-gradient(180deg,#ffffff 0%,#fbfcfd 100%);
+  border:1px solid #e3e7ec;
+  border-radius:var(--radius);
+  padding:18px 20px;
+  box-shadow:var(--shadow-md);
+  margin-bottom:22px;
+  transition:box-shadow .35s var(--ease), transform .35s var(--ease), border-color .35s var(--ease);
+  position:relative;
+}
+.card:hover{ box-shadow:var(--shadow-lg); transform:translateY(-1px); }
+
+@property --a { syntax:'<angle>'; inherits:false; initial-value:0deg; }
+.card.busy{ border-color:transparent; }
+.card.busy::before{
+  content:""; position:absolute; inset:-1px; border-radius:inherit; padding:1px;
+  background: conic-gradient(from var(--a), transparent 0 70%, var(--accent) 70% 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+  animation: rotate .9s linear infinite; pointer-events:none;
+}
+@keyframes rotate{ to{ --a:360deg; } }
+
+/* ===== ШАПКА / БРЕНД ===== */
+.topbar{
+  display:flex; justify-content:space-between; align-items:center; gap:16px;
+  margin-bottom:26px; flex-wrap:wrap;
+  padding-bottom:18px;
+  border-bottom:1px solid var(--line);
+}
+
+.brand{ display:flex; align-items:center; gap:16px; }
+
+.brand-mark{
+  position:relative;
+  font-size:28px; font-weight:800; letter-spacing:-.6px;
+  padding:10px 16px;
+  border-radius:12px;
+  background:linear-gradient(135deg,rgba(237,123,36,.16),rgba(237,123,36,.04));
+  border:1px solid rgba(237,123,36,.4);
+  color:#bd5b13;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 5px 16px rgba(237,123,36,.12);
+  line-height:1;
+}
+.brand-mark::after{
+  content:"";
+  position:absolute; right:-5px; bottom:-5px;
+  width:11px; height:11px; border-radius:50%;
+  background:var(--accent);
+  box-shadow:0 0 14px var(--accent), 0 0 0 3px #f4f6f8;
+}
+
+.brand-info{ display:flex; flex-direction:column; gap:3px; }
+
+.brand-name{
+  font-size:21px; font-weight:700; letter-spacing:.4px;
+  background:linear-gradient(90deg,#26313d 0%,#566270 100%);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  line-height:1.1;
+}
+
+.brand-tag{
+  font-size:11px; font-weight:600;
+  letter-spacing:1.8px; text-transform:uppercase;
+  color:var(--text-dim); opacity:.85;
+}
+
+.developer-sign{
+  margin-top:6px;
+  font-size:9px;
+  letter-spacing:1.6px;
+  font-weight:500;
+  color:#89939e;
+  opacity:.85;
+  text-transform:uppercase;
+}
+.developer-sign span{
+  color:#d96d1c;
+  font-weight:700;
+}
+
+@media(max-width:600px){
+  .brand-tag{ display:none; }
+  .developer-sign{ font-size:8px; }
+  .brand-mark{ font-size:22px; padding:7px 12px; }
+  .brand-name{ font-size:17px; }
+}
+
+/* ===== ТАБЛИЦЫ (адаптивная сетка) ===== */
+.table-wrap{
+  width:100%;
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+  border-radius:var(--radius-sm);
+}
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:14px;
+  table-layout:auto;
+  min-width:520px;
+}
+th,td{ padding:12px 14px; text-align:left; vertical-align:middle; border-bottom:1px solid #e7eaee; position:relative; }
+th{
+  background:#f0f2f5; color:#647181;
+  font-size:11px; text-transform:uppercase; letter-spacing:.5px;
+  border-bottom:1px solid var(--line); white-space:nowrap;
+}
+tr:hover td{ background:#f6f8fa; }
+tr::before{
+  content:""; position:absolute; left:0; top:8px; bottom:8px; width:2px;
+  background:var(--accent); border-radius:2px;
+  transform:scaleY(0); transform-origin:center;
+  transition:transform .25s var(--ease);
+  pointer-events:none;
+}
+tr:hover::before{ transform:scaleY(1); }
+tr.filled td{ background:rgba(237,123,36,.055); }
+tr.filled::before{ background:var(--accent); transform:scaleY(.5); opacity:.6; }
+
+.num{ text-align:right; white-space:nowrap; }
+.indent{ padding-left:18px !important; }
+
+#inputBody td:nth-child(2),
+#glassBody td:first-child,
+#plankBody td:first-child,
+#hingeBody td:first-child,
+#semiBody td:nth-child(2),
+#semiBody td:nth-child(3){
+  white-space:nowrap;
+}
+
+.color-cell{ display:flex; align-items:center; gap:10px; }
+.color-dot{
+  width:16px; height:16px; border-radius:50%;
+  flex:none; box-shadow:inset 0 0 0 1px rgba(0,0,0,.12);
+  transition:background-color .3s var(--ease);
+}
+
+/* ===== ПОЛЯ ВВОДА (крупные) ===== */
+input[type=number]{
+  width:100%; max-width:110px;
+  text-align:right;
+  background:#fff;
+  border:1px solid #d8dee6;
+  color:#26313d;
+  border-radius:var(--radius-sm);
+  padding:12px 14px;
+  font-size:16px;
+  font-weight:600;
+  font-variant-numeric:tabular-nums;
+  transition:border-color .2s var(--ease), box-shadow .2s var(--ease), background .2s;
+  -moz-appearance:textfield;
+}
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
+
+select, textarea{
+  width:100%;
+  background:#fff;
+  border:1px solid #d8dee6;
+  color:#26313d;
+  border-radius:var(--radius-sm);
+  padding:12px 14px;
+  font:inherit;
+  font-size:15px;
+  transition:border-color .2s var(--ease), box-shadow .2s var(--ease), background .2s;
+}
+textarea{ font-size:14px; line-height:1.5; }
+
+input:focus, select:focus, textarea:focus{
+  outline:none; border-color:var(--accent); background:#fff;
+  box-shadow:var(--accent-glow);
+}
+input::placeholder{ color:#a0a9b3; }
+
+.cut-settings label input{
+  font-size:15px;
+  padding:11px 12px;
+}
+
+/* ===== ОШИБКИ ===== */
+.invalid{
+  border-color:var(--danger) !important;
+  box-shadow:0 0 0 3px rgba(220,75,80,.12), 0 6px 18px rgba(220,75,80,.18) !important;
+  animation:shake .35s var(--ease);
+}
+@keyframes shake{
+  0%,100%{ transform:translateX(0) }
+  25%{ transform:translateX(-5px) }
+  75%{ transform:translateX(5px) }
+}
+
+/* ===== КНОПКИ ===== */
+button{
+  border-radius:var(--radius-sm);
+  padding:13px 22px;
+  font-size:14px;
+  font-weight:600;
+  letter-spacing:.3px;
+  border:none; cursor:pointer; position:relative; overflow:hidden;
+  transition:transform .15s var(--ease), box-shadow .25s var(--ease), background .2s;
+}
+.btn-primary{
+  background:linear-gradient(180deg,#ff984b,#ed741b);
+  color:#fff;
+  box-shadow:0 4px 12px rgba(237,116,27,.22),inset 0 1px 0 rgba(255,255,255,.35);
+}
+.btn-primary:hover{ box-shadow:0 8px 20px rgba(237,116,27,.32),inset 0 1px 0 rgba(255,255,255,.45); }
+.btn-secondary{ background:#f1f3f6; color:#344150; border:1px solid #dfe4e9; }
+.btn-secondary:hover{ background:#e8ecf1; }
+.btn-success{ background:linear-gradient(180deg,#34c47a,#1ea75e); color:#fff; box-shadow:0 4px 12px rgba(35,155,89,.22),inset 0 1px 0 rgba(255,255,255,.35); }
+.btn-success:hover{ box-shadow:0 8px 20px rgba(35,155,89,.3); }
+.btn-danger{
+  background:linear-gradient(180deg,#ef585d,#d94348);
+  color:#fff;
+  box-shadow:0 3px 10px rgba(220,75,80,.2), inset 0 1px 0 rgba(255,255,255,.3);
+}
+.btn-danger:hover{ box-shadow:0 6px 16px rgba(220,75,80,.3); }
+button.done{ background:linear-gradient(180deg,#34c47a,#1ea75e) !important; color:#fff !important; }
+
+.btns{ display:flex; gap:10px; flex-wrap:wrap; margin-top:15px; align-items:center; }
+
+/* ===== ПОДСВЕТКА ИТОГОВ ===== */
+.grand-total{
+  background:linear-gradient(90deg,rgba(237,123,36,.15),rgba(237,123,36,.045)) !important;
+  color:#87400f; font-weight:700;
+}
+.color-header{ background:rgba(237,123,36,.07) !important; color:#a95012 !important; font-weight:700; }
+.color-subtotal{ background:rgba(237,123,36,.075) !important; font-weight:600; }
+.total-row{ background:rgba(237,123,36,.11) !important; font-weight:700; }
+
+tr.grand-total:hover td,
+tr.total-row:hover td{
+  box-shadow:inset 0 0 0 1px rgba(237,123,36,.32);
+}
+
+.delta{ font-size:11px; margin-left:6px; font-weight:600; letter-spacing:0; }
+.delta.up{ color:#21884f; }
+.delta.down{ color:#d94a50; }
+
+.info-block{ font-size:13px; color:#687482; margin-bottom:12px; }
+
+/* ===== АНИМАЦИИ ===== */
+.reveal{ opacity:0; transform:translateY(10px); animation:reveal .5s var(--ease) forwards; }
+@keyframes reveal{ to{ opacity:1; transform:none; } }
+#results{ display:none; }
+#results.reveal > .card{ animation:reveal .55s var(--ease) both; }
+#results.reveal > .card:nth-child(1){ animation-delay:.02s }
+#results.reveal > .card:nth-child(2){ animation-delay:.08s }
+#results.reveal > .card:nth-child(3){ animation-delay:.14s }
+#results.reveal > .card:nth-child(4){ animation-delay:.20s }
+#results.reveal > .card:nth-child(5){ animation-delay:.26s }
+
+.skeleton-card{
+  display:none;
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:18px 20px; margin-bottom:22px;
+}
+.skeleton-line{
+  height:12px; border-radius:6px; margin:10px 0;
+  background:linear-gradient(90deg,#edf0f3 25%,#f7f8fa 37%,#edf0f3 63%);
+  background-size:400% 100%;
+  animation:shimmer 1.2s infinite;
+}
+.skeleton-line:nth-child(2){ width:70%; }
+.skeleton-line:nth-child(3){ width:55%; }
+.skeleton-line:nth-child(4){ width:85%; }
+@keyframes shimmer{ to{ background-position:-400% 0; } }
+
+.calc-overlay{
+  position:fixed; inset:0; z-index:50;
+  display:grid; place-items:center; gap:14px;
+  background:radial-gradient(600px 300px at 50% 40%,rgba(237,123,36,.09),transparent 70%),rgba(245,247,249,.78);
+  backdrop-filter:blur(6px);
+  opacity:0; pointer-events:none;
+  transition:opacity .3s var(--ease);
+}
+.calc-overlay.on{ opacity:1; pointer-events:auto; }
+.calc-spinner{
+  width:46px; height:46px; border-radius:50%;
+  border:3px solid rgba(237,123,36,.18); border-top-color:var(--accent);
+  animation:spin .8s linear infinite; box-shadow:0 0 24px rgba(237,123,36,.25);
+}
+.calc-label{ color:#536171; font-size:13px; letter-spacing:.4px; }
+@keyframes spin{ to{ transform:rotate(360deg); } }
+
+.pulse-once{ animation:pulse .9s var(--ease); }
+@keyframes pulse{
+  0%{ box-shadow:0 0 0 0 rgba(237,123,36,.4); }
+  60%{ box-shadow:0 0 0 10px rgba(237,123,36,0); }
+  100%{ box-shadow:0 0 0 0 rgba(237,123,36,0); }
+}
+
+.toast{
+  position:fixed; left:50%; bottom:96px; transform:translate(-50%, 20px);
+  background:#fff;
+  border:1px solid #e0e5ea;
+  color:#26313d;
+  padding:12px 18px; border-radius:10px;
+  box-shadow:0 12px 30px rgba(31,45,61,.16);
+  opacity:0; pointer-events:none; z-index:60;
+  transition:opacity .3s var(--ease), transform .3s var(--ease);
+  font-size:13px; max-width:min(90vw, 520px);
+}
+.toast.on{ opacity:1; transform:translate(-50%,0); pointer-events:auto; }
+.toast.warn{ border-color:#e8c18e; }
+.toast.error{ border-color:#e6b0b2; }
+.toast.ok{ border-color:#b7ddc6; }
+
+/* ===== РАСКРОЙ ===== */
+.cut-settings{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  gap:12px;
+  margin:14px 0;
+}
+.cut-settings label{
+  display:flex; flex-direction:column; gap:6px;
+  font-size:12px; color:#687482;
+  text-transform:uppercase; letter-spacing:.4px;
+}
+
+.cut-card{
+  border:1px solid #e1e5ea;
+  border-left:3px solid var(--accent);
+  border-radius:var(--radius-sm);
+  padding:16px 18px;
+  margin:16px 0;
+  background:linear-gradient(180deg,#fff 0%,#fbfcfd 100%);
+  break-inside:avoid;
+  animation:cardIn .45s var(--ease) both;
+  position:relative;
+  transition:box-shadow .3s var(--ease), transform .3s var(--ease);
+}
+.cut-card.done::after{
+  content:""; position:absolute; inset:0; border-radius:inherit;
+  box-shadow:inset 0 0 0 1px rgba(237,123,36,.32);
+  pointer-events:none; animation:doneFlash .9s var(--ease);
+}
+@keyframes doneFlash{ 0%{opacity:1;} 100%{opacity:0;} }
+@keyframes cardIn{ from{opacity:0; transform:translateY(8px) scale(.985);} to{opacity:1; transform:none;} }
+
+.cut-card-head{
+  display:flex; align-items:center; gap:10px;
+  margin-bottom:12px; padding-bottom:10px;
+  border-bottom:1px dashed #e5e9ed;
+}
+.cut-card-head .icon{
+  width:28px; height:28px; border-radius:8px;
+  display:grid; place-items:center;
+  background:var(--accent-soft);
+  color:var(--accent);
+  font-size:14px; font-weight:700;
+  flex:none;
+  box-shadow:inset 0 0 0 1px rgba(237,123,36,.28);
+}
+.cut-card-head h3{
+  margin:0; font-size:15px; color:#a95012; font-weight:600;
+}
+.cut-card-meta{
+  font-size:12px; color:#687482;
+  margin-bottom:14px;
+  display:flex; flex-wrap:wrap; gap:12px;
+}
+.cut-card-meta span{ display:inline-flex; align-items:center; gap:5px; }
+.cut-card-meta b{ color:#344150; font-weight:600; }
+
+.cut-step{
+  display:flex; align-items:center; gap:12px;
+  padding:10px 12px;
+  margin:6px 0;
+  border-radius:8px;
+  background:#f5f7f9;
+  border:1px solid #edf0f3;
+  font-size:13px;
+  transition:background .2s, border-color .2s;
+}
+.cut-step:hover{ background:#eef1f4; }
+
+.step-num{
+  width:26px; height:26px; border-radius:50%;
+  display:grid; place-items:center;
+  font-size:12px; font-weight:700;
+  flex:none;
+  color:#fff;
+  background:linear-gradient(180deg,#ff984b,#ed741b);
+  box-shadow:0 2px 6px rgba(237,116,27,.22);
+}
+.step-text{ flex:1; color:#344150; }
+.step-text b{ color:#a95012; }
+.step-size{
+  font-family:'Segoe UI',Arial,sans-serif;
+  font-weight:700;
+  font-size:13px;
+  color:#b65a17;
+  background:rgba(237,123,36,.08);
+  padding:4px 10px;
+  border-radius:6px;
+  white-space:nowrap;
+  border:1px solid rgba(237,123,36,.22);
+}
+
+.cut-remainder{
+  display:flex; align-items:center; gap:12px;
+  margin-top:12px; padding:10px 12px;
+  border-radius:8px;
+  background:rgba(35,155,89,.055);
+  border:1px solid rgba(35,155,89,.2);
+  font-size:13px;
+}
+.cut-remainder .icon{
+  width:24px; height:24px; border-radius:6px;
+  display:grid; place-items:center;
+  background:rgba(35,155,89,.12);
+  color:var(--success);
+  font-size:13px;
+  flex:none;
+}
+.cut-remainder .label{ flex:1; color:#687482; }
+.cut-remainder .value{ font-weight:700; color:#21884f; font-size:14px; }
+.cut-remainder.low{ background:rgba(220,75,80,.055); border-color:rgba(220,75,80,.2); }
+.cut-remainder.low .icon{ background:rgba(220,75,80,.1); color:#dc4b50; }
+.cut-remainder.low .value{ color:#dc4b50; }
+
+.cut-summary{ display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; margin:12px 0; }
+.cut-stat{ background:#f4f6f8; border:1px solid #e1e5ea; border-radius:10px; padding:12px; font-size:11px; color:#687482; text-transform:uppercase; letter-spacing:.4px; }
+.cut-stat b{ display:block; font-size:22px; margin-top:6px; color:#c7651b; }
+.cut-small{ font-size:12px; color:#687482; }
+.cut-note{ background:var(--accent-soft) !important; border-left:4px solid var(--accent) !important; color:#344150; padding:12px 14px; border-radius:0 8px 8px 0; margin-top:12px; font-size:13px; }
+
+.cut-progress{ height:3px; background:rgba(237,123,36,.1); border-radius:2px; overflow:hidden; margin:10px 0 0; }
+.cut-progress span{
+  display:block; height:100%; width:0;
+  background:linear-gradient(90deg,#ff984b,#ed741b);
+  transition:width .25s var(--ease);
+  box-shadow:0 0 8px rgba(237,123,36,.4);
+}
+
+#cuttingCard h2{
+  position:sticky; top:0; z-index:2;
+  padding:6px 0;
+  background:linear-gradient(180deg,rgba(255,255,255,.97),rgba(255,255,255,.88));
+  backdrop-filter:blur(4px);
+  margin:-6px 0 10px;
+  box-shadow:0 4px 12px rgba(31,45,61,.04);
+}
+
+.empty-state{
+  text-align:center; padding:36px 12px; color:#7b8794;
+}
+.empty-state b{ display:block; color:#344150; font-size:16px; margin-bottom:6px; }
+.empty-state svg{ opacity:.4; margin-bottom:12px; }
+
+/* ===== Нижний статус-бар ===== */
+.status-bar{
+  position:fixed; left:0; right:0; bottom:0; z-index:40;
+  display:flex; align-items:center; gap:18px; flex-wrap:wrap;
+  padding:10px 20px;
+  background:linear-gradient(180deg,rgba(255,255,255,.97),rgba(246,248,250,.99));
+  border-top:1px solid #dfe4e9;
+  box-shadow:0 -4px 18px rgba(31,45,61,.06);
+  backdrop-filter:blur(8px);
+  font-size:13px;
+  transform:translateY(100%);
+  transition:transform .35s var(--ease);
+  justify-content:center;
+}
+.status-bar.on{ transform:translateY(0); }
+.status-bar .item{ display:flex; align-items:center; gap:6px; color:#687482; }
+.status-bar .item b{ color:#344150; font-weight:600; transition:color .3s; }
+.status-bar .item.accent b{ color:#c7651b; }
+.status-bar .sep{ width:1px; height:14px; background:#dce2e8; }
+
+@media(max-width:600px){
+  body{ padding:12px 12px 100px; background:#f4f6f8; }
+  .card{ padding:14px; }
+  .cut-step{ font-size:12px; padding:8px 10px; }
+  .step-num{ width:22px; height:22px; font-size:11px; }
+  .step-size{ font-size:12px; padding:3px 8px; }
+  th, td{ padding:10px 8px; font-size:13px; }
+  input[type=number]{ font-size:15px; padding:10px 12px; }
+  select, textarea{ font-size:14px; padding:10px 12px; }
+  .status-bar{ font-size:12px; gap:10px; padding:8px 12px; }
+  .status-bar .sep{ display:none; }
+  table{ min-width:460px; }
+}
+
+@media print{
+  @page { size: A4; margin: 12mm 10mm; }
+  body{ background:#fff !important; color:#000 !important; padding:0 !important; font-size:11px; }
+  #dustCanvas, .skeleton-card, .empty-state, .status-bar, .topbar{ display:none !important; }
+  .container{ max-width:100%; }
+  .btns, button, .no-print, .calc-overlay, .toast, .cut-progress, .card.busy::before{ display:none !important; }
+  #cuttingCard .cut-settings, #cuttingCard textarea, #remnantInput + label{ display:none !important; }
+  .card{ background:#fff !important; border:1px solid #ccc !important; border-radius:0; padding:8px 10px; margin-bottom:12px; box-shadow:none !important; transform:none !important; break-inside:avoid; page-break-inside:avoid; }
+  h2{ color:#000 !important; break-after:avoid; page-break-after:avoid; margin:0 0 6px; font-size:14px; position:static !important; box-shadow:none !important; }
+  h2::before{ background:#000; box-shadow:none; }
+  table{ font-size:10px; table-layout:auto !important; min-width:0; }
+  .table-wrap{ overflow:visible; }
+  thead{ display:table-header-group; }
+  tr{ break-inside:avoid; page-break-inside:avoid; }
+  tr::before{ display:none !important; }
+  th,td{ padding:4px 6px; border-bottom:1px solid #ddd; color:#000 !important; }
+  th{ background:#eee !important; }
+  input, select, textarea{ background:#fff !important; color:#000 !important; border-color:#999 !important; box-shadow:none !important; }
+  .grand-total, .color-header, .color-subtotal, .total-row{ background:#eef4ff !important; color:#000 !important; }
+  .cut-stat{ background:#f0f5fb !important; border-color:#ccc !important; color:#000 !important; }
+  .cut-stat b{ color:#000 !important; }
+  .cut-card{ background:#fff !important; border:1px solid #ccc !important; border-left:3px solid #ff7a1a !important; }
+  .cut-card-head h3{ color:#000 !important; }
+  .cut-card-meta{ color:#333 !important; }
+  .step-num{ background:#ff7a1a !important; color:#fff !important; box-shadow:none !important; }
+  .step-text{ color:#000 !important; }
+  .step-size{ background:#fff4ea !important; color:#c25a00 !important; border-color:#ffb37a !important; }
+  .cut-remainder{ background:#f0fff5 !important; border-color:#b8e6c8 !important; }
+  .cut-remainder .value{ color:#1a7a3e !important; }
+  .cut-note{ background:#f0f5fb !important; border-left-color:#2c7be5 !important; color:#000 !important; }
+  .cut-small{ color:#333 !important; }
+  .delta{ display:none !important; }
+  #results{ display:block !important; opacity:1 !important; transform:none !important; }
+  #results > .card{ animation:none !important; }
+}
 </style>
 </head>
 <body>
+
+<canvas id="dustCanvas"></canvas>
+
 <div class="container">
 
-  <h1>Калькулятор заявок — Фасады</h1>
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark">DeRa</div>
+      <div class="brand-info">
+        <div class="brand-name">AL Фасады</div>
+        <div class="brand-tag">Производственный калькулятор</div>
+        <div class="developer-sign">Develop by: <span>Andreev A</span></div>
+      </div>
+    </div>
+  </div>
 
-  <div class="card input-card no-print">
-    <h2 style="margin-top:0">1. Введите количество по фасадам</h2>
-    <div class="info-block">Пустые поля считаются как 0 и не участвуют в расчёте.</div>
-    <table>
-      <colgroup>
-        <col style="width: 10%;">
-        <col style="width: 35%;">
-        <col style="width: 35%;">
-        <col style="width: 20%;">
-      </colgroup>
-      <thead>
-        <tr>
-          <th>№</th>
-          <th>Наименование</th>
-          <th>Цвет</th>
-          <th>Кол-во</th>
-        </tr>
-      </thead>
-      <tbody id="inputBody"></tbody>
-    </table>
+  <div class="card input-card no-print" data-parallax>
+    <h2 style="margin-top:0">
+      1. Введите количество по фасадам
+    </h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:50px">№</th>
+            <th>Наименование</th>
+            <th style="width:200px">Цвет</th>
+            <th style="width:150px" class="num">Кол-во</th>
+          </tr>
+        </thead>
+        <tbody id="inputBody"></tbody>
+      </table>
+    </div>
     <div class="btns">
-      <button class="btn-primary" onclick="calculate()">РАССЧИТАТЬ</button>
+      <button class="btn-primary" onclick="runCalculation()">РАССЧИТАТЬ</button>
       <button class="btn-danger" onclick="clearAll()">ОЧИСТИТЬ</button>
     </div>
   </div>
 
+  <div id="skeleton" class="skeleton-card">
+    <div class="skeleton-line"></div>
+    <div class="skeleton-line"></div>
+    <div class="skeleton-line"></div>
+    <div class="skeleton-line"></div>
+  </div>
+
   <div id="results">
-    <div class="card">
+    <div class="card" data-parallax>
       <h2 style="margin-top:0">2. Стекло — по цветам</h2>
       <div class="info-block">Цвет стекла определяется цветом фасада, в который оно входит. Для каждого цвета — общий итог.</div>
-      <table>
-        <thead>
-          <tr>
-            <th>Цвет / Размер, мм</th>
-            <th class="num" style="width:120px">Кол-во, шт</th>
-            <th style="width:100%"></th>
-          </tr>
-        </thead>
-        <tbody id="glassBody"></tbody>
-      </table>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Цвет / Размер, мм</th>
+              <th class="num" style="width:140px">Кол-во, шт</th>
+            </tr>
+          </thead>
+          <tbody id="glassBody"></tbody>
+        </table>
+      </div>
     </div>
 
-    <div class="card">
+    <div class="card" data-parallax>
       <h2 style="margin-top:0">3. Планки — по цветам</h2>
       <div class="info-block">Все планки сгруппированы по цвету фасадов. Для каждого цвета — общая длина.</div>
-      <table>
-        <thead>
-          <tr>
-            <th>Цвет / Длина, мм</th>
-            <th class="num" style="width:100px">Кол-во, шт</th>
-            <th class="num" style="width:140px">Общая длина, мм</th>
-            <th class="num" style="width:120px">Общая длина, м</th>
-            <th style="width:100%"></th>
-          </tr>
-        </thead>
-        <tbody id="plankBody"></tbody>
-      </table>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Цвет / Длина, мм</th>
+              <th class="num" style="width:110px">Кол-во, шт</th>
+              <th class="num" style="width:160px">Общая длина, мм</th>
+              <th class="num" style="width:150px">Общая длина, м</th>
+            </tr>
+          </thead>
+          <tbody id="plankBody"></tbody>
+        </table>
+      </div>
     </div>
 
     <div class="card" id="cuttingCard">
@@ -159,39 +680,50 @@
         <label>Промежуток, мм<input type="number" id="spacing" value="5" min="0" oninput="buildCuttingPlan()"></label>
         <label>Минимальный остаток, мм<input type="number" id="minRemnant" value="400" min="1" oninput="buildCuttingPlan()"></label>
       </div>
-      <label style="display:block;font-size:13px;color:#555;margin:10px 0 5px">Остатки на складе — по одному в строке: ЦВЕТ;ДЛИНА (например: ЧЕРН;850)</label>
-      <textarea id="remnantInput" rows="3" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:5px;font:inherit" placeholder="ЧЕРН;850&#10;Белый;1200" oninput="buildCuttingPlan()"></textarea>
+      <label style="display:block;font-size:13px;color:var(--text-dim);margin:10px 0 5px">Остатки на складе — по одному в строке: ЦВЕТ;ДЛИНА (например: ЧЕРН;850)</label>
+      <textarea id="remnantInput" rows="3" placeholder="ЧЕРН;850&#10;Белый;1200" oninput="buildCuttingPlan()"></textarea>
       <div class="btns">
         <button class="btn-primary" onclick="buildCuttingPlan()">СОСТАВИТЬ КАРТУ РАСКРОЯ</button>
         <button class="btn-secondary" onclick="loadSavedRemnants()">ЗАГРУЗИТЬ СОХРАНЁННЫЕ ОСТАТКИ</button>
-        <button class="btn-success" onclick="saveCuttingRemnants()">СОХРАНИТЬ НОВЫЕ ОСТАТКИ</button>
+        <button class="btn-success" id="saveRemnantsBtn" onclick="saveCuttingRemnants()">СОХРАНИТЬ НОВЫЕ ОСТАТКИ</button>
       </div>
+      <div class="cut-progress"><span id="cutProgress"></span></div>
       <div id="cuttingSummary"></div>
       <div id="cuttingOutput"></div>
     </div>
 
-    <div class="card">
+    <div class="card" data-parallax>
       <h2 style="margin-top:0">4. Фурнитура — пакетики с петлями</h2>
       <div class="info-block">Цвет не важен. Считаем, сколько пакетиков с 2, 3 и 5 петлями нужно собрать.</div>
-      <table>
-        <thead>
-          <tr>
-            <th>Тип пакетика</th>
-            <th class="num" style="width:180px">Кол-во пакетиков, шт</th>
-            <th class="num" style="width:160px">Всего петель, шт</th>
-            <th style="width:100%"></th>
-          </tr>
-        </thead>
-        <tbody id="hingeBody"></tbody>
-      </table>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Тип пакетика</th>
+              <th class="num" style="width:200px">Кол-во пакетиков, шт</th>
+              <th class="num" style="width:180px">Всего петель, шт</th>
+            </tr>
+          </thead>
+          <tbody id="hingeBody"></tbody>
+        </table>
+      </div>
     </div>
 
-    <div class="card">
+    <div class="card" data-parallax>
       <h2 style="margin-top:0">5. Полуфабрикаты (с учётом цвета)</h2>
-      <table>
-        <thead><tr><th style="width:40px">№</th><th>Наименование</th><th>Цвет</th><th class="num" style="width:120px">Кол-во, шт</th><th style="width:100%"></th></tr></thead>
-        <tbody id="semiBody"></tbody>
-      </table>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:50px">№</th>
+              <th>Наименование</th>
+              <th>Цвет</th>
+              <th class="num" style="width:120px">Кол-во, шт</th>
+            </tr>
+          </thead>
+          <tbody id="semiBody"></tbody>
+        </table>
+      </div>
     </div>
 
     <div class="btns">
@@ -200,9 +732,154 @@
     </div>
   </div>
 
+  <div id="emptyState" class="empty-state">
+    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>
+    <b>Заявка пока пуста</b>
+    Введите количество по фасадам и нажмите «Рассчитать».
+  </div>
+
+</div>
+
+<div class="status-bar" id="statusBar">
+  <div class="item">Деталей: <b id="stParts">0</b></div>
+  <div class="sep"></div>
+  <div class="item">Профилей: <b id="stProfiles">0</b></div>
+  <div class="sep"></div>
+  <div class="item">Полуфабрикатов: <b id="stSemi">0</b></div>
+  <div class="sep"></div>
+  <div class="item accent">Отход: <b id="stWaste">0%</b></div>
+  <div class="sep"></div>
+  <div class="item">Остатков: <b id="stRests">0</b></div>
+</div>
+
+<div id="calcOverlay" class="calc-overlay" aria-hidden="true">
+  <div class="calc-spinner"></div>
+  <div class="calc-label">Считаем заявку…</div>
 </div>
 
 <script>
+/* ============================================================
+   ЗВУК (Web Audio API)
+   ============================================================ */
+const Sound = (() => {
+  let ctx = null;
+  let enabled = false;
+  try { enabled = localStorage.getItem('facadeSound') === '1'; } catch(e){}
+
+  function ensureCtx(){
+    if (!ctx){
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (AC) ctx = new AC();
+    }
+    if (ctx && ctx.state === 'suspended') ctx.resume();
+    return ctx;
+  }
+
+  function beep(freq, dur, type, gain){
+    if (!enabled) return;
+    const c = ensureCtx();
+    if (!c) return;
+    const o = c.createOscillator();
+    const g = c.createGain();
+    o.type = type || 'sine';
+    o.frequency.value = freq;
+    g.gain.value = 0;
+    o.connect(g); g.connect(c.destination);
+    const t = c.currentTime;
+    g.gain.linearRampToValueAtTime(gain || 0.03, t + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.start(t);
+    o.stop(t + dur + 0.02);
+  }
+
+  return {
+    isEnabled: () => enabled,
+    setEnabled(v){
+      enabled = !!v;
+      try { localStorage.setItem('facadeSound', enabled ? '1' : '0'); } catch(e){}
+      if (enabled) { ensureCtx(); beep(880, 0.08, 'sine', 0.04); }
+    },
+    tick(){ beep(1400, 0.04, 'sine', 0.02); },
+    saw(){ beep(420, 0.05, 'square', 0.02); },
+    pop(){ beep(660, 0.12, 'triangle', 0.05); setTimeout(() => beep(990, 0.1, 'sine', 0.03), 40); },
+    calc(){ beep(520, 0.06, 'sine', 0.03); }
+  };
+})();
+
+/* ============================================================
+   AMBIENT-ЧАСТИЦЫ
+   ============================================================ */
+(function initDust(){
+  const canvas = document.getElementById('dustCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  let w, h, particles = [];
+  const mouse = { x: -9999, y: -9999 };
+  const COUNT = window.innerWidth < 600 ? 16 : 28;
+
+  function resize(){
+    w = canvas.width = window.innerWidth;
+    h = canvas.height = window.innerHeight;
+  }
+
+  function makeParticle(){
+    return {
+      x: Math.random() * w,
+      y: Math.random() * h,
+      r: 0.6 + Math.random() * 1.6,
+      vx: (Math.random() - 0.5) * 0.15,
+      vy: (Math.random() - 0.5) * 0.15,
+      a: 0.15 + Math.random() * 0.35
+    };
+  }
+
+  function init(){
+    resize();
+    particles = [];
+    for (let i = 0; i < COUNT; i++) particles.push(makeParticle());
+  }
+
+  function loop(){
+    ctx.clearRect(0, 0, w, h);
+    particles.forEach(p => {
+      const dx = p.x - mouse.x;
+      const dy = p.y - mouse.y;
+      const d2 = dx*dx + dy*dy;
+      if (d2 < 120*120){
+        const d = Math.sqrt(d2) || 1;
+        const force = (120 - d) / 120 * 0.4;
+        p.vx += (dx / d) * force;
+        p.vy += (dy / d) * force;
+      }
+      p.vx *= 0.98;
+      p.vy *= 0.98;
+      p.x += p.vx;
+      p.y += p.vy;
+      if (p.x < -10) p.x = w + 10;
+      if (p.x > w + 10) p.x = -10;
+      if (p.y < -10) p.y = h + 10;
+      if (p.y > h + 10) p.y = -10;
+
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      // мягкие тёмно-серые пылинки для светлой темы
+      ctx.fillStyle = `rgba(80, 95, 110, ${p.a * 0.35})`;
+      ctx.fill();
+    });
+    requestAnimationFrame(loop);
+  }
+
+  window.addEventListener('resize', () => { resize(); });
+  window.addEventListener('pointermove', e => {
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+  });
+  window.addEventListener('pointerleave', () => { mouse.x = -9999; mouse.y = -9999; });
+
+  init();
+  loop();
+})();
+
 /* ============================================================
    БАЗА РЕЦЕПТОВ
    ============================================================ */
@@ -218,18 +895,55 @@ const RECIPES = {
 };
 
 const COLORS = ["ЧЕРН", "ЧЕРН, Браво", "Золото", "Белый"];
+const COLOR_HEX = {
+  "ЧЕРН": "#151515",
+  "ЧЕРН, Браво": "#2a2020",
+  "Золото": "#c9a227",
+  "Белый": "#f2f2f2"
+};
 
-// Новая последовательность фасадов
 const facadeNames = [
-  "Ф-20 AL",
-  "Ф-20H AL",
-  "Ф-30H AL",
-  "Ф-46 AL",
-  "Ф-46H AL",
-  "Ф-91H AL",
-  "Ф-92H AL",
-  "Ф-554H AL"
+  "Ф-20 AL", "Ф-20H AL", "Ф-30H AL", "Ф-46 AL",
+  "Ф-46H AL", "Ф-91H AL", "Ф-92H AL", "Ф-554H AL"
 ];
+
+/* ============================================================
+   TOAST
+   ============================================================ */
+function toast(msg, type){
+  let t = document.getElementById('toast');
+  if (!t){
+    t = document.createElement('div');
+    t.id = 'toast';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.className = 'toast on ' + (type || 'warn');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('on'), 3200);
+}
+
+/* ============================================================
+   СЧЁТЧИКИ
+   ============================================================ */
+function countUp(el, to, dur){
+  dur = dur || 600;
+  const from = 0, start = performance.now();
+  function tick(t){
+    const p = Math.min(1, (t - start) / dur);
+    const eased = 1 - Math.pow(1 - p, 3);
+    el.textContent = Math.round(from + (to - from) * eased).toLocaleString('ru-RU');
+    if (p < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+function animateCounters(root){
+  root.querySelectorAll('[data-count]').forEach(el => {
+    const to = Number(el.getAttribute('data-count'));
+    if (!isNaN(to)) countUp(el, to);
+  });
+}
 
 /* ============================================================
    ФОРМА
@@ -240,17 +954,36 @@ function buildForm() {
   inputBody.innerHTML = '';
   facadeNames.forEach((name, i) => {
     const tr = document.createElement('tr');
+    tr.id = `row_${i}`;
     tr.innerHTML = `
       <td>${i + 1}</td>
       <td>${name}</td>
       <td>
-        <select id="color_${i}">
-          ${COLORS.map(c => `<option value="${c}">${c}</option>`).join('')}
-        </select>
+        <div class="color-cell">
+          <span class="color-dot" id="dot_${i}" style="background:${COLOR_HEX[COLORS[0]]}"></span>
+          <select id="color_${i}">
+            ${COLORS.map(c => `<option value="${c}">${c}</option>`).join('')}
+          </select>
+        </div>
       </td>
-      <td><input type="number" id="qty_${i}" value="" placeholder="0" min="0" step="1"></td>
+      <td class="num"><input type="number" id="qty_${i}" value="" placeholder="0" min="0" step="1" inputmode="numeric"></td>
     `;
     inputBody.appendChild(tr);
+
+    const sel = tr.querySelector(`#color_${i}`);
+    const dot = tr.querySelector(`#dot_${i}`);
+    sel.addEventListener('change', () => {
+      dot.style.background = COLOR_HEX[sel.value] || '#888';
+      Sound.tick();
+      updateLiveSummary();
+    });
+
+    const inp = tr.querySelector(`#qty_${i}`);
+    inp.addEventListener('input', () => {
+      tr.classList.toggle('filled', Number(inp.value) > 0);
+      Sound.tick();
+      updateLiveSummary();
+    });
   });
 }
 buildForm();
@@ -263,9 +996,98 @@ function getQty(i) {
 }
 
 /* ============================================================
+   «ЖИВАЯ» СВОДКА
+   ============================================================ */
+function computeLiveSummary(){
+  let parts = 0, semi = 0;
+  let planks = {};
+  facadeNames.forEach((name, i) => {
+    const qty = getQty(i);
+    if (qty <= 0) return;
+    const r = RECIPES[name];
+    r.planks.forEach(p => { planks[p.size] = (planks[p.size] || 0) + p.qty * qty; });
+    semi += qty;
+  });
+  let totalPieces = 0;
+  Object.values(planks).forEach(q => totalPieces += q);
+
+  let profiles = 0, waste = 0;
+  try {
+    const cfg = readCutSettingsSafe();
+    const remnants = [];
+    const bars = [];
+    const colorGroups = {};
+    facadeNames.forEach((name, i) => {
+      const qty = getQty(i);
+      if (qty <= 0) return;
+      const color = document.getElementById(`color_${i}`).value;
+      if (!colorGroups[color]) colorGroups[color] = {};
+      RECIPES[name].planks.forEach(p => {
+        colorGroups[color][p.size] = (colorGroups[color][p.size] || 0) + p.qty * qty;
+      });
+    });
+    Object.entries(colorGroups).forEach(([color, sizes]) => {
+      const lines = Object.entries(sizes).map(([s,q]) => ({size: parseInt(s), qty: q}));
+      bars.push(...packPiecesForColor(color, lines, cfg, remnants));
+    });
+    profiles = bars.length;
+    const totalNewPurchase = profiles * cfg.stockLength;
+    const initialTrimLoss = profiles * cfg.trim;
+    const gapsLoss = bars.reduce((sum,b)=>sum+Math.max(0,b.pieceCount-1)*cfg.gap,0);
+    const finalScrap = bars.reduce((sum,b)=>sum+b.remainder,0);
+    waste = totalNewPurchase ? (initialTrimLoss+gapsLoss+finalScrap)/totalNewPurchase*100 : 0;
+  } catch(e){}
+
+  return { parts: totalPieces, profiles, semi, waste };
+}
+
+function readCutSettingsSafe(){
+  try { return readCutSettings(); }
+  catch(e){
+    return { stockLength: 6000, trim: 40, kerf: 4, spacing: 5, gap: 9, newCapacity: 5960, minRemnant: 400 };
+  }
+}
+
+let liveSummaryTimer = null;
+function updateLiveSummary(){
+  const bar = document.getElementById('statusBar');
+  const hasAny = facadeNames.some((_, i) => getQty(i) > 0);
+  if (!hasAny){
+    bar.classList.remove('on');
+    return;
+  }
+  bar.classList.add('on');
+
+  if (liveSummaryTimer) clearTimeout(liveSummaryTimer);
+  liveSummaryTimer = setTimeout(() => {
+    try {
+      const s = computeLiveSummary();
+      setLiveValue('stParts', s.parts);
+      setLiveValue('stProfiles', s.profiles);
+      setLiveValue('stSemi', s.semi);
+      setLiveValue('stWaste', s.waste.toFixed(1).replace('.', ',') + '%');
+      setLiveValue('stRests', lastCuttingPlan ? lastCuttingPlan.saved.reduce((n,r) => n + r.count, 0) : 0);
+    } catch(e){}
+  }, 120);
+}
+
+function setLiveValue(id, val){
+  const el = document.getElementById(id);
+  if (!el) return;
+  const old = el.textContent;
+  const next = String(val);
+  if (old !== next){
+    el.textContent = next;
+    el.style.color = 'var(--accent)';
+    setTimeout(() => { el.style.color = ''; }, 350);
+  }
+}
+
+/* ============================================================
    РАСЧЁТ
    ============================================================ */
 let lastResult = null;
+let prevResult = null;
 
 function calculate() {
   const glassByColor = {};
@@ -281,35 +1103,33 @@ function calculate() {
 
     const recipe = RECIPES[name];
 
-    // Стекло
     if (!glassByColor[color]) glassByColor[color] = {};
     recipe.glass.forEach(g => {
       const key = `${g.w}x${g.h}`;
       glassByColor[color][key] = (glassByColor[color][key] || 0) + g.qty * qty;
     });
 
-    // Планки
     if (!plankByColor[color]) plankByColor[color] = {};
     recipe.planks.forEach(p => {
       plankByColor[color][p.size] = (plankByColor[color][p.size] || 0) + p.qty * qty;
     });
 
-    // Фурнитура
     const h = recipe.hinges;
     if (!hingePackets[h]) hingePackets[h] = { packets: 0, totalHinges: 0 };
     hingePackets[h].packets += qty;
     hingePackets[h].totalHinges += h * qty;
 
-    // Полуфабрикаты
     const semiKey = `${name}||${color}`;
     semiMap[semiKey] = (semiMap[semiKey] || 0) + qty;
     totalSemi += qty;
   });
 
   if (!totalSemi) {
-    alert('Заполните хотя бы одну позицию (количество больше 0).');
+    toast('Заполните хотя бы одну позицию (количество больше 0).', 'warn');
     return;
   }
+
+  if (lastResult) prevResult = lastResult;
 
   const colorsOrder = COLORS.filter(c => glassByColor[c] || plankByColor[c]);
 
@@ -321,39 +1141,26 @@ function calculate() {
   colorsOrder.forEach(color => {
     const sizes = glassByColor[color];
     if (!sizes) return;
-
     const sizeEntries = Object.entries(sizes)
       .map(([k, q]) => {
         const [w, h] = k.split('x').map(Number);
         return { w, h, qty: q, area: w * h };
       })
       .sort((a, b) => b.area - a.area);
-
-    glassBody.innerHTML += `<tr class="color-header"><td colspan="3">Цвет: ${color}</td></tr>`;
-
+    glassBody.innerHTML += `<tr class="color-header"><td colspan="2">Цвет: ${color}</td></tr>`;
     let colorQty = 0;
     sizeEntries.forEach(g => {
       colorQty += g.qty;
-      glassBody.innerHTML += `<tr>
-        <td class="indent">${g.w} × ${g.h}</td>
-        <td class="num">${g.qty}</td>
-        <td></td>
-      </tr>`;
+      glassBody.innerHTML += `<tr><td class="indent">${g.w} × ${g.h}</td><td class="num">${g.qty}</td></tr>`;
     });
-
-    glassBody.innerHTML += `<tr class="color-subtotal">
-      <td>Итого стекла ${color}:</td>
-      <td class="num">${colorQty}</td>
-      <td></td>
-    </tr>`;
-
+    glassBody.innerHTML += `<tr class="color-subtotal"><td>Итого стекла ${color}:</td><td class="num">${colorQty}</td></tr>`;
     glassGrandQty += colorQty;
   });
 
+  const deltaGlass = prevResult ? glassGrandQty - prevResult.glassGrandQty : 0;
   glassBody.innerHTML += `<tr class="grand-total">
     <td>ВСЕГО СТЕКЛА:</td>
-    <td class="num">${glassGrandQty}</td>
-    <td></td>
+    <td class="num"><span data-count="${glassGrandQty}">0</span>${renderDelta(deltaGlass)}</td>
   </tr>`;
 
   /* ---- ПЛАНКИ ---- */
@@ -365,13 +1172,10 @@ function calculate() {
   colorsOrder.forEach(color => {
     const sizes = plankByColor[color];
     if (!sizes) return;
-
     const sizeEntries = Object.entries(sizes)
       .map(([s, q]) => ({ size: parseInt(s), qty: q }))
       .sort((a, b) => b.size - a.size);
-
-    plankBody.innerHTML += `<tr class="color-header"><td colspan="5">Цвет: ${color}</td></tr>`;
-
+    plankBody.innerHTML += `<tr class="color-header"><td colspan="4">Цвет: ${color}</td></tr>`;
     let colorQty = 0, colorMm = 0;
     sizeEntries.forEach(p => {
       const lineMm = p.size * p.qty;
@@ -382,28 +1186,24 @@ function calculate() {
         <td class="num">${p.qty}</td>
         <td class="num">${lineMm.toLocaleString('ru-RU')}</td>
         <td class="num">${(lineMm/1000).toFixed(3).replace('.', ',')}</td>
-        <td></td>
       </tr>`;
     });
-
     plankBody.innerHTML += `<tr class="color-subtotal">
       <td>Итого ${color}:</td>
       <td class="num">${colorQty}</td>
       <td class="num">${colorMm.toLocaleString('ru-RU')}</td>
       <td class="num">${(colorMm/1000).toFixed(3).replace('.', ',')}</td>
-      <td></td>
     </tr>`;
-
     grandQty += colorQty;
     grandMm += colorMm;
   });
 
+  const deltaQty = prevResult ? grandQty - prevResult.plankGrandQty : 0;
   plankBody.innerHTML += `<tr class="grand-total">
     <td>ВСЕГО ПЛАНОК:</td>
-    <td class="num">${grandQty}</td>
+    <td class="num"><span data-count="${grandQty}">0</span>${renderDelta(deltaQty)}</td>
     <td class="num">${grandMm.toLocaleString('ru-RU')}</td>
     <td class="num">${(grandMm/1000).toFixed(3).replace('.', ',')}</td>
-    <td></td>
   </tr>`;
 
   /* ---- ФУРНИТУРА ---- */
@@ -420,15 +1220,13 @@ function calculate() {
       <td>Пакетик с ${h} петлями</td>
       <td class="num">${p.packets}</td>
       <td class="num">${p.totalHinges}</td>
-      <td></td>
     </tr>`;
   });
 
   hingeBody.innerHTML += `<tr class="grand-total">
     <td>ИТОГО пакетиков:</td>
-    <td class="num">${totalPackets}</td>
-    <td class="num">${totalHingesAll}</td>
-    <td></td>
+    <td class="num"><span data-count="${totalPackets}">0</span></td>
+    <td class="num"><span data-count="${totalHingesAll}">0</span></td>
   </tr>`;
 
   /* ---- ПОЛУФАБРИКАТЫ ---- */
@@ -437,9 +1235,12 @@ function calculate() {
   const semiEntries = Object.entries(semiMap).sort((a,b) => a[0].localeCompare(b[0]));
   semiEntries.forEach(([key, qty], idx) => {
     const [name, color] = key.split('||');
-    semiBody.innerHTML += `<tr><td>${idx+1}</td><td>${name}</td><td>${color}</td><td class="num">${qty}</td><td></td></tr>`;
+    semiBody.innerHTML += `<tr><td>${idx+1}</td><td>${name}</td><td>${color}</td><td class="num">${qty}</td></tr>`;
   });
-  semiBody.innerHTML += `<tr class="total-row"><td colspan="4">ИТОГО полуфабрикатов</td><td class="num">${totalSemi}</td></tr>`;
+  semiBody.innerHTML += `<tr class="total-row">
+    <td colspan="3">ИТОГО полуфабрикатов</td>
+    <td class="num"><span data-count="${totalSemi}">0</span></td>
+  </tr>`;
 
   /* ---- СОХРАНЕНИЕ ---- */
   lastResult = {
@@ -477,11 +1278,67 @@ function calculate() {
     timestamp: new Date()
   };
 
+  document.getElementById('emptyState').style.display = 'none';
   document.getElementById('results').style.display = 'block';
   buildCuttingPlan();
+  updateLiveSummary();
   document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
 }
 
+function renderDelta(d){
+  if (!d) return '';
+  const cls = d > 0 ? 'up' : 'down';
+  const sign = d > 0 ? '+' : '';
+  return `<span class="delta ${cls}">${sign}${d}</span>`;
+}
+
+/* ============================================================
+   ОБЁРТКА С АНИМАЦИЕЙ + SKELETON
+   ============================================================ */
+function runCalculation(){
+  const overlay = document.getElementById('calcOverlay');
+  const skeleton = document.getElementById('skeleton');
+  const results = document.getElementById('results');
+  const empty = document.getElementById('emptyState');
+
+  overlay.classList.add('on');
+  Sound.calc();
+  if (navigator.vibrate) navigator.vibrate(8);
+
+  requestAnimationFrame(() => setTimeout(() => {
+    try {
+      const hasData = facadeNames.some((_, i) => getQty(i) > 0);
+      if (hasData){
+        results.style.display = 'none';
+        empty.style.display = 'none';
+        skeleton.style.display = 'block';
+      }
+      setTimeout(() => {
+        try {
+          calculate();
+        } finally {
+          overlay.classList.remove('on');
+          skeleton.style.display = 'none';
+          if (results.style.display === 'block'){
+            results.classList.remove('reveal');
+            void results.offsetWidth;
+            results.classList.add('reveal');
+            results.querySelectorAll('.grand-total, .total-row').forEach(el => {
+              el.classList.remove('pulse-once');
+              void el.offsetWidth;
+              el.classList.add('pulse-once');
+            });
+            animateCounters(results);
+          }
+        }
+      }, 180);
+    } catch (e) {
+      overlay.classList.remove('on');
+      skeleton.style.display = 'none';
+      toast(e.message || 'Ошибка расчёта', 'error');
+    }
+  }, 40));
+}
 
 /* ============================================================
    РАСКРОЙ ПЛАНОК
@@ -507,17 +1364,25 @@ function readCutSettings() {
 }
 
 function parseRemnants() {
-  const raw = document.getElementById('remnantInput').value.trim();
+  const ta = document.getElementById('remnantInput');
+  const raw = ta.value.trim();
+  ta.classList.remove('invalid');
   if (!raw) return [];
   const result = [];
-  raw.split(/\r?\n/).forEach((line, i) => {
-    if (!line.trim()) return;
-    const parts = line.split(';').map(x => x.trim());
-    const color = parts[0];
-    const length = Number(parts[1]);
-    if (!color || !(length > 0)) throw new Error(`Ошибка в строке остатков №${i + 1}. Формат: ЦВЕТ;ДЛИНА`);
-    result.push({ color, length, source: 'Складской остаток' });
-  });
+  try {
+    raw.split(/\r?\n/).forEach((line, i) => {
+      if (!line.trim()) return;
+      const parts = line.split(';').map(x => x.trim());
+      const color = parts[0];
+      const length = Number(parts[1]);
+      if (!color || !(length > 0)) throw new Error(`Ошибка в строке остатков №${i + 1}. Формат: ЦВЕТ;ДЛИНА`);
+      result.push({ color, length, source: 'Складской остаток' });
+    });
+  } catch(e){
+    ta.classList.add('invalid');
+    setTimeout(() => ta.classList.remove('invalid'), 1600);
+    throw e;
+  }
   return result;
 }
 
@@ -551,7 +1416,7 @@ function packPiecesForColor(color, lines, cfg, remnants) {
     best.pieces.push(size);
   });
 
-  return bins.filter(b=>b.pieces.length).map((b,idx)=>{
+  return bins.filter(b=>b.pieces.length).map((b) => {
     const counts = {};
     b.pieces.forEach(size=>counts[size]=(counts[size]||0)+1);
     const sizes = Object.keys(counts).map(Number).sort((a,b)=>b-a);
@@ -567,6 +1432,8 @@ function packPiecesForColor(color, lines, cfg, remnants) {
 
 function buildCuttingPlan() {
   if (!lastResult) return;
+  const card = document.getElementById('cuttingCard');
+  card.classList.add('busy');
   try {
     const cfg = readCutSettings();
     const remnants = parseRemnants();
@@ -599,11 +1466,10 @@ function buildCuttingPlan() {
     const newBars = ordered.filter(b=>b.source==='Новый профиль').length;
     const usedRemnants = ordered.length-newBars;
     const totalPieces = ordered.reduce((s,b)=>s+b.pieceCount,0);
-    
-    // --- ГРУППИРОВКА ОСТАТКОВ ---
+
     const savedRaw = ordered.filter(b=>b.source==='Новый профиль' && b.remainder>=cfg.minRemnant)
       .map(b=>({color:b.color, length:Math.floor(b.remainder)}));
-      
+
     const groupedSaved = {};
     savedRaw.forEach(r => {
       const key = `${r.color};${r.length}`;
@@ -611,7 +1477,6 @@ function buildCuttingPlan() {
       groupedSaved[key].count++;
     });
     const saved = Object.values(groupedSaved);
-    // -----------------------------
 
     const totalNewPurchase = newBars * cfg.stockLength;
     const usedRemnantInput = ordered.filter(b=>b.source==='Складской остаток').reduce((sum,b)=>sum+b.capacity,0);
@@ -637,75 +1502,91 @@ function buildCuttingPlan() {
       <p><b>Порядок работы:</b> возьмите нужное количество новых профилей и раскроите их по шагам, указанным в карточках ниже.</p>
     `;
 
-    // --- ОБЪЕДИНЕНИЕ ОДИНАКОВЫХ ПРОФИЛЕЙ В КАРТОЧКИ ---
     const groupedBars = [];
     ordered.forEach(bar => {
       const signature = JSON.stringify({
-        color: bar.color,
-        source: bar.source,
-        steps: bar.steps,
-        remainder: bar.remainder,
-        capacity: bar.capacity
+        color: bar.color, source: bar.source, steps: bar.steps,
+        remainder: bar.remainder, capacity: bar.capacity
       });
       const existing = groupedBars.find(g => g.signature === signature);
-      if (existing) {
-        existing.count++;
-      } else {
-        groupedBars.push({
-          ...bar,
-          signature,
-          count: 1
-        });
-      }
+      if (existing) existing.count++;
+      else groupedBars.push({ ...bar, signature, count: 1 });
     });
 
     const output = document.getElementById('cuttingOutput');
     output.innerHTML = '';
-    
-    groupedBars.forEach((bar) => {
+
+    groupedBars.forEach((bar, idx) => {
+      // Шаги: номер + текст «Упор на X мм»
       const steps = bar.steps.map((step,j)=>`
         <div class="cut-step">
-          <span><b>Шаг ${j+1}.</b> Выставить упор ${step.size} мм и отрезать ${step.qty} шт.</span>
-          <b>${step.size} × ${step.qty}</b>
+          <div class="step-num">${j+1}</div>
+          <div class="step-text">Упор на <b>${step.size} мм</b> — отрезать ${step.qty} шт.</div>
+          <div class="step-size">${step.size} × ${step.qty}</div>
         </div>`).join('');
-        
-      // Убираем нумерацию, пишем просто количество профилей
+
       const title = `${bar.count} ${bar.count === 1 ? 'профиль' : (bar.count > 1 && bar.count < 5 ? 'профиля' : 'профилей')}`;
+      const isNew = bar.source === 'Новый профиль';
+      const icon = isNew ? '✦' : '↺';
+      const remainderClass = bar.remainder >= cfg.minRemnant ? '' : 'low';
 
       output.innerHTML += `
-        <div class="cut-card">
-          <h3>${title} — ${bar.color}</h3>
-          <div class="cut-small">${bar.source} · Доступная длина: ${bar.capacity} мм · Деталей в одном: ${bar.pieceCount}</div>
+        <div class="cut-card" style="animation-delay:${idx*0.05}s">
+          <div class="cut-card-head">
+            <div class="icon">${icon}</div>
+            <h3>${title} — ${bar.color}</h3>
+          </div>
+          <div class="cut-card-meta">
+            <span>📦 <b>${bar.source}</b></span>
+            <span>📏 Доступно: <b>${bar.capacity} мм</b></span>
+            <span>🔧 Деталей: <b>${bar.pieceCount}</b></span>
+          </div>
           ${steps}
-          <div class="cut-step"><span><b>Остаток после раскроя</b></span><b>${bar.remainder} мм</b></div>
+          <div class="cut-remainder ${remainderClass}">
+            <div class="icon">${bar.remainder >= cfg.minRemnant ? '✓' : '!'}</div>
+            <div class="label">Остаток после раскроя</div>
+            <div class="value">${bar.remainder} мм</div>
+          </div>
         </div>`;
     });
-    // ------------------------------------------------
 
     const savedText = saved.length
       ? saved.map(r=>`${r.color};${r.length} — ${r.count} шт.`).join('\n')
       : 'Нет остатков, подходящих под заданный минимальный размер.';
-      
-    output.innerHTML += `<div class="cut-note" style="background:#f0f5fb;border-left:4px solid #2c7be5;"><b>Остатки для сохранения:</b><br>${savedText.replace(/\n/g,'<br>')}<br><span class="cut-small">Остатки со складских заготовок в список новых остатков не включаются автоматически.</span></div>`;
+
+    output.innerHTML += `<div class="cut-note"><b>Остатки для сохранения:</b><br>${savedText.replace(/\n/g,'<br>')}<br><span class="cut-small">Остатки со складских заготовок в список новых остатков не включаются автоматически.</span></div>`;
+
+    const progress = document.getElementById('cutProgress');
+    if (progress){
+      progress.style.width = '0%';
+      setTimeout(() => progress.style.width = '100%', 120);
+    }
+
+    updateLiveSummary();
   } catch (err) {
-    alert(err.message || 'Не удалось составить карту раскроя.');
+    toast(err.message || 'Не удалось составить карту раскроя.', 'error');
+  } finally {
+    setTimeout(() => card.classList.remove('busy'), 700);
   }
 }
 
+/* ============================================================
+   СОХРАНЕНИЕ / ЗАГРУЗКА ОСТАТКОВ
+   ============================================================ */
 function loadSavedRemnants() {
   try {
     const saved = JSON.parse(localStorage.getItem('deraCutRemnants') || '[]');
     document.getElementById('remnantInput').value = saved.map(r=>`${r.color};${r.length}`).join('\n');
     buildCuttingPlan();
-    alert(saved.length ? `Загружено остатков: ${saved.length}` : 'Сохранённых остатков пока нет.');
+    toast(saved.length ? `Загружено остатков: ${saved.length}` : 'Сохранённых остатков пока нет.', saved.length ? 'ok' : 'warn');
   } catch(e) {
-    alert('Не удалось прочитать сохранённые остатки.');
+    toast('Не удалось прочитать сохранённые остатки.', 'error');
   }
 }
 
 function saveCuttingRemnants() {
   if (!lastCuttingPlan) {
-    alert('Сначала составьте карту раскроя.');
+    toast('Сначала составьте карту раскроя.', 'warn');
     return;
   }
   const existing = parseRemnants();
@@ -715,10 +1596,20 @@ function saveCuttingRemnants() {
       newRemnants.push({ color: r.color, length: r.length });
     }
   });
-  
   const combined = existing.concat(newRemnants);
   localStorage.setItem('deraCutRemnants', JSON.stringify(combined));
-  alert(`Сохранено остатков: ${newRemnants.length}. При следующем расчёте нажмите «Загрузить сохранённые остатки».`);
+
+  const btn = document.getElementById('saveRemnantsBtn');
+  const original = btn.textContent;
+  btn.textContent = '✓ СОХРАНЕНО';
+  btn.classList.add('done');
+  Sound.pop();
+  if (navigator.vibrate) navigator.vibrate(12);
+  setTimeout(() => {
+    btn.textContent = original;
+    btn.classList.remove('done');
+  }, 1400);
+  updateLiveSummary();
 }
 
 /* ============================================================
@@ -728,142 +1619,139 @@ function clearAll() {
   facadeNames.forEach((_, i) => {
     document.getElementById(`qty_${i}`).value = '';
     document.getElementById(`color_${i}`).selectedIndex = 0;
+    document.getElementById(`dot_${i}`).style.background = COLOR_HEX[COLORS[0]];
+    document.getElementById(`row_${i}`).classList.remove('filled');
   });
   document.getElementById('results').style.display = 'none';
+  document.getElementById('results').classList.remove('reveal');
+  document.getElementById('emptyState').style.display = 'block';
+  document.getElementById('skeleton').style.display = 'none';
+  document.getElementById('statusBar').classList.remove('on');
   lastResult = null;
   lastCuttingPlan = null;
   document.getElementById('cuttingSummary').innerHTML = '';
   document.getElementById('cuttingOutput').innerHTML = '';
   document.getElementById('remnantInput').value = '';
+  document.getElementById('cutProgress').style.width = '0%';
+  updateLiveSummary();
 }
 
 /* ============================================================
-   ЭКСПОРТ В PDF
+   PDF
    ============================================================ */
 function downloadPDF() {
   if (!lastResult) return;
-  if (typeof window.jspdf === 'undefined') { alert('Библиотека jsPDF не загружена.'); return; }
-
+  if (typeof window.jspdf === 'undefined') { toast('Библиотека jsPDF не загружена.', 'error'); return; }
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
   const ts = lastResult.timestamp.toLocaleString('ru-RU');
 
-  doc.setFontSize(14);
-  doc.text("Спецификация заявки на фасады", 14, 15);
+  doc.setDrawColor(237, 123, 36);
+  doc.setLineWidth(1.2);
+  doc.line(14, 12, 196, 12);
+  doc.setFontSize(16);
+  doc.setTextColor(30, 30, 30);
+  doc.text("СПЕЦИФИКАЦИЯ ЗАЯВКИ", 14, 22);
   doc.setFontSize(10);
-  doc.text(`Сформировано: ${ts}`, 14, 22);
+  doc.setTextColor(120, 120, 120);
+  doc.text("Фасады — расчёт материалов и раскроя", 14, 28);
+  doc.text(`Сформировано: ${ts}`, 14, 33);
 
-  // 1. Стекло
+  doc.setTextColor(0, 0, 0);
   doc.setFontSize(12);
-  doc.text("1. Стекло — по цветам", 14, 32);
+  doc.text("1. Стекло — по цветам", 14, 42);
 
   const glassBodyData = [];
   lastResult.glassByColor.forEach(group => {
-    glassBodyData.push([{ content: `Цвет: ${group.color}`, colSpan: 3, styles: { fillColor: [248,245,255], fontStyle: 'bold', textColor: [111,66,193] } }]);
+    glassBodyData.push([{ content: `Цвет: ${group.color}`, colSpan: 3, styles: { fillColor: [255,243,234], fontStyle: 'bold', textColor: [169,80,18] } }]);
     group.lines.forEach(g => {
       glassBodyData.push(["", `${g.w} × ${g.h}`, g.qty]);
     });
-    glassBodyData.push([{ content: `Итого ${group.color}:`, colSpan: 2, styles: { fillColor: [240,234,255], fontStyle: 'bold' } }, group.qty]);
+    glassBodyData.push([{ content: `Итого ${group.color}:`, colSpan: 2, styles: { fillColor: [255,243,234], fontStyle: 'bold' } }, group.qty]);
   });
 
   doc.autoTable({
-    startY: 36,
+    startY: 46,
     head: [["Цвет", "Размер (Ш × В), мм", "Кол-во, шт"]],
     body: glassBodyData,
     foot: [["ВСЕГО СТЕКЛА:", "", lastResult.glassGrandQty]],
     styles: { fontSize: 10 },
-    headStyles: { fillColor: [44, 123, 229] },
-    footStyles: { fillColor: [217, 236, 255], textColor: [0,0,0], fontStyle: 'bold' }
+    headStyles: { fillColor: [237, 123, 36] },
+    footStyles: { fillColor: [255,243,234], textColor: [0,0,0], fontStyle: 'bold' }
   });
 
-  // 2. Планки
   let y = doc.lastAutoTable.finalY + 10;
   doc.text("2. Планки — по цветам", 14, y);
-
   const plankBody = [];
   lastResult.planksByColor.forEach(group => {
-    plankBody.push([{ content: `Цвет: ${group.color}`, colSpan: 5, styles: { fillColor: [248,245,255], fontStyle: 'bold', textColor: [111,66,193] } }]);
+    plankBody.push([{ content: `Цвет: ${group.color}`, colSpan: 5, styles: { fillColor: [255,243,234], fontStyle: 'bold', textColor: [169,80,18] } }]);
     group.lines.forEach(l => {
       plankBody.push(["", l.size, l.qty, l.totalMm.toLocaleString('ru-RU'), l.totalM.toFixed(3).replace('.', ',')]);
     });
-    plankBody.push([{ content: `Итого ${group.color}:`, colSpan: 2, styles: { fillColor: [240,234,255], fontStyle: 'bold' } }, group.qty, group.mm.toLocaleString('ru-RU'), group.m.toFixed(3).replace('.', ',')]);
+    plankBody.push([{ content: `Итого ${group.color}:`, colSpan: 2, styles: { fillColor: [255,243,234], fontStyle: 'bold' } }, group.qty, group.mm.toLocaleString('ru-RU'), group.m.toFixed(3).replace('.', ',')]);
   });
-
   doc.autoTable({
     startY: y + 4,
     head: [["Цвет", "Длина, мм", "Кол-во, шт", "Общая длина, мм", "Общая длина, м"]],
     body: plankBody,
     foot: [["ВСЕГО ПЛАНОК:", "", lastResult.plankGrandQty, lastResult.plankGrandMm.toLocaleString('ru-RU'), lastResult.plankGrandM.toFixed(3).replace('.', ',')]],
     styles: { fontSize: 9 },
-    headStyles: { fillColor: [44, 123, 229] },
-    footStyles: { fillColor: [217, 236, 255], textColor: [0,0,0], fontStyle: 'bold' }
+    headStyles: { fillColor: [237, 123, 36] },
+    footStyles: { fillColor: [255,243,234], textColor: [0,0,0], fontStyle: 'bold' }
   });
 
-  // 3. Фурнитура
   y = doc.lastAutoTable.finalY + 10;
   doc.text("3. Фурнитура — пакетики с петлями", 14, y);
-
   doc.autoTable({
     startY: y + 4,
     head: [["Тип пакетика", "Кол-во пакетиков, шт", "Всего петель, шт"]],
     body: lastResult.hinges.map(h => [`Пакетик с ${h.hinges} петлями`, h.packets, h.totalHinges]),
     foot: [["ИТОГО:", lastResult.hingeTotalPackets, lastResult.hingeTotalHinges]],
     styles: { fontSize: 10 },
-    headStyles: { fillColor: [44, 123, 229] },
-    footStyles: { fillColor: [217, 236, 255], textColor: [0,0,0], fontStyle: 'bold' }
+    headStyles: { fillColor: [237, 123, 36] },
+    footStyles: { fillColor: [255,243,234], textColor: [0,0,0], fontStyle: 'bold' }
   });
 
-  // 4. Полуфабрикаты
   y = doc.lastAutoTable.finalY + 10;
   doc.text("4. Полуфабрикаты (с учётом цвета)", 14, y);
-
   doc.autoTable({
     startY: y + 4,
     head: [["№", "Наименование", "Цвет", "Кол-во, шт"]],
     body: lastResult.semi.map((s, i) => [i + 1, s.name, s.color, s.qty]),
     foot: [["", "", "ИТОГО:", lastResult.totalSemi]],
     styles: { fontSize: 10 },
-    headStyles: { fillColor: [44, 123, 229] },
-    footStyles: { fillColor: [234, 243, 255], textColor: [0,0,0], fontStyle: 'bold' }
+    headStyles: { fillColor: [237, 123, 36] },
+    footStyles: { fillColor: [255,243,234], textColor: [0,0,0], fontStyle: 'bold' }
   });
 
-  // 5. Карта раскроя
   if (lastCuttingPlan && lastCuttingPlan.ordered.length) {
     doc.addPage();
     doc.setFontSize(14);
     doc.text("5. Карта раскроя планок", 14, 15);
     doc.setFontSize(9);
     doc.text(`Профиль: ${lastCuttingPlan.cfg.stockLength} мм; торцовка: ${lastCuttingPlan.cfg.trim} мм; пропил: ${lastCuttingPlan.cfg.kerf} мм; промежуток: ${lastCuttingPlan.cfg.spacing} мм`, 14, 22);
-    
-    // В PDF тоже группируем для компактности
+
     const groupedPdfBars = [];
     lastCuttingPlan.ordered.forEach((bar) => {
       const signature = JSON.stringify({ color: bar.color, source: bar.source, steps: bar.steps, remainder: bar.remainder, capacity: bar.capacity });
       const existing = groupedPdfBars.find(g => g.signature === signature);
-      if (existing) {
-        existing.count++;
-      } else {
-        groupedPdfBars.push({ ...bar, signature, count: 1 });
-      }
+      if (existing) existing.count++;
+      else groupedPdfBars.push({ ...bar, signature, count: 1 });
     });
 
     doc.autoTable({
       startY: 28,
       head: [["Кол-во", "Цвет", "Источник", "Порядок резки", "Остаток, мм"]],
-      body: groupedPdfBars.map(b => {
-        return [
-          `${b.count} шт.`,
-          b.color,
-          b.source,
-          b.steps.map(st => `${st.size} мм × ${st.qty} шт.`).join("; "),
-          b.remainder
-        ];
-      }),
+      body: groupedPdfBars.map(b => [
+        `${b.count} шт.`, b.color, b.source,
+        b.steps.map(st => `Упор на ${st.size} мм × ${st.qty} шт.`).join("; "),
+        b.remainder
+      ]),
       styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak' },
-      headStyles: { fillColor: [44, 123, 229] },
+      headStyles: { fillColor: [237, 123, 36] },
       columnStyles: { 0:{cellWidth:16}, 1:{cellWidth:25}, 2:{cellWidth:28}, 3:{cellWidth:'auto'}, 4:{cellWidth:20} }
     });
-    
+
     const cutY = doc.lastAutoTable.finalY + 8;
     doc.setFontSize(9);
     doc.text(`Новых профилей: ${lastCuttingPlan.newBars}; складских остатков использовано: ${lastCuttingPlan.usedRemnants}; деталей: ${lastCuttingPlan.totalPieces}; смен упора: ${lastCuttingPlan.transitionsInside}; переходов: ${lastCuttingPlan.transitionsBetween}; расчётный отход: ${lastCuttingPlan.wastePct.toFixed(2)}%`, 14, cutY, { maxWidth: 180 });
@@ -877,13 +1765,52 @@ function downloadPDF() {
         head: [["Цвет", "Длина, мм", "Кол-во"]],
         body: lastCuttingPlan.saved.map(r => [r.color, r.length, r.count]),
         styles: { fontSize: 9 },
-        headStyles: { fillColor: [44, 123, 229] }
+        headStyles: { fillColor: [237, 123, 36] }
       });
     }
   }
 
+  const pageCount = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++){
+    doc.setPage(i);
+    doc.setFontSize(8);
+    doc.setTextColor(150, 150, 150);
+    doc.text(`Страница ${i} из ${pageCount}`, 196, 290, { align: 'right' });
+    doc.text("DeRa — AL Фасады · Калькулятор", 14, 290);
+  }
+
   doc.save(`Заявка_${lastResult.timestamp.toISOString().slice(0,10)}.pdf`);
 }
+
+/* ============================================================
+   МИКРОЭФФЕКТЫ И ИНИЦИАЛИЗАЦИЯ
+   ============================================================ */
+document.addEventListener('pointerdown', e => {
+  const b = e.target.closest('button');
+  if (b) b.style.transform = 'translateY(1px) scale(.98)';
+});
+['pointerup','pointercancel','pointerleave'].forEach(ev =>
+  document.addEventListener(ev, e => {
+    const b = e.target.closest('button');
+    if (b) b.style.transform = '';
+  })
+);
+
+document.querySelectorAll('.card[data-parallax]').forEach(card => {
+  const inner = card.querySelector('h2');
+  if (!inner) return;
+  card.addEventListener('pointermove', e => {
+    const r = card.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width - 0.5;
+    const y = (e.clientY - r.top) / r.height - 0.5;
+    inner.style.transform = `translate(${x * 3}px, ${y * 2}px)`;
+  });
+  card.addEventListener('pointerleave', () => {
+    inner.style.transform = '';
+  });
+});
+
+updateLiveSummary();
 </script>
 </body>
 </html>
