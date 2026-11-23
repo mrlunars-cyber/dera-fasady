@@ -1,6 +1,6 @@
 
 
-const CACHE_NAME = 'dera-fasady-v6';
+const CACHE_NAME = 'dera-fasady-v7';
 
 const APP_FILES = [
   './',
