@@ -39,6 +39,7 @@ body{
   margin:0; padding:24px 24px 84px;
   min-height:100vh;
   -webkit-font-smoothing:antialiased;
+  -webkit-text-size-adjust: 100%;
   position:relative;
   overflow-x:hidden;
 }
@@ -48,7 +49,7 @@ body{
   opacity:.7;
 }
 
-.container{max-width:1100px;margin:0 auto;position:relative}
+.container{max-width:600px;margin:0 auto;position:relative}
 .input-card{max-width:600px}
 
 h2{
@@ -150,7 +151,7 @@ h2::before{
   .brand-name{ font-size:17px; }
 }
 
-/* ===== ТАБЛИЦЫ (адаптивная сетка) ===== */
+/* ===== ТАБЛИЦЫ ===== */
 .table-wrap{
   width:100%;
   overflow-x:auto;
@@ -162,7 +163,7 @@ table{
   border-collapse:collapse;
   font-size:14px;
   table-layout:auto;
-  min-width:520px;
+  min-width:0;
 }
 th,td{ padding:12px 14px; text-align:left; vertical-align:middle; border-bottom:1px solid rgba(42,48,58,.6); position:relative; }
 th{
@@ -185,15 +186,6 @@ tr.filled::before{ background:var(--accent); transform:scaleY(.5); opacity:.6; }
 .num{ text-align:right; white-space:nowrap; }
 .indent{ padding-left:18px !important; }
 
-#inputBody td:nth-child(2),
-#glassBody td:first-child,
-#plankBody td:first-child,
-#hingeBody td:first-child,
-#semiBody td:nth-child(2),
-#semiBody td:nth-child(3){
-  white-space:nowrap;
-}
-
 .color-cell{ display:flex; align-items:center; gap:10px; }
 .color-dot{
   width:16px; height:16px; border-radius:50%;
@@ -201,9 +193,9 @@ tr.filled::before{ background:var(--accent); transform:scaleY(.5); opacity:.6; }
   transition:background-color .3s var(--ease);
 }
 
-/* ===== ПОЛЯ ВВОДА (крупные) ===== */
+/* ===== ПОЛЯ ВВОДА ===== */
 input[type=number]{
-  width:100%; max-width:110px;
+  width:100%;
   text-align:right;
   background:var(--surface-3);
   border:1px solid var(--line);
@@ -238,7 +230,6 @@ input:focus, select:focus, textarea:focus{
 }
 input::placeholder{ color:#5c6470; }
 
-/* настройки раскроя — крупнее */
 .cut-settings label input{
   font-size:15px;
   padding:11px 12px;
@@ -377,7 +368,6 @@ tr.total-row:hover td{
   text-transform:uppercase; letter-spacing:.4px;
 }
 
-/* Карточки раскроя — структурированные */
 .cut-card{
   border:1px solid var(--line);
   border-left:3px solid var(--accent);
@@ -423,7 +413,6 @@ tr.total-row:hover td{
 .cut-card-meta span{ display:inline-flex; align-items:center; gap:5px; }
 .cut-card-meta b{ color:var(--text); font-weight:600; }
 
-/* Шаги — цветные и с иконками */
 .cut-step{
   display:flex; align-items:center; gap:12px;
   padding:10px 12px;
@@ -459,7 +448,6 @@ tr.total-row:hover td{
   border:1px solid rgba(255,122,26,.25);
 }
 
-/* Строка остатка */
 .cut-remainder{
   display:flex; align-items:center; gap:12px;
   margin-top:12px; padding:10px 12px;
@@ -543,7 +531,6 @@ tr.total-row:hover td{
   select, textarea{ font-size:14px; padding:10px 12px; }
   .status-bar{ font-size:12px; gap:10px; padding:8px 12px; }
   .status-bar .sep{ display:none; }
-  table{ min-width:460px; }
 }
 
 
@@ -765,7 +752,6 @@ input::placeholder{color:#a0a9b3}
     overflow-x: hidden;
   }
 
-  /* The general mobile rule sets tables to 460px; cancel it here. */
   .input-card table {
     width: 100% !important;
     min-width: 0 !important;
@@ -774,7 +760,6 @@ input::placeholder{color:#a0a9b3}
     border-collapse: collapse;
   }
 
-  /* Hide the numbering column on narrow screens. */
   .input-card thead th:first-child,
   .input-card tbody td:first-child {
     display: none !important;
@@ -787,7 +772,6 @@ input::placeholder{color:#a0a9b3}
     font-size: 11px;
   }
 
-  /* Facade name, color selector, quantity. */
   .input-card thead th:nth-child(2),
   .input-card tbody td:nth-child(2) {
     width: 30% !important;
@@ -852,6 +836,71 @@ input::placeholder{color:#a0a9b3}
   }
 }
 
+/* ===== МОБИЛЬНАЯ ВЁРСТКА: БЕЗ ГОРИЗОНТАЛЬНОЙ ПРОКРУТКИ ===== */
+
+/* Флекс-элементы не выталкивают карточки за границы экрана */
+.cut-card-head h3,
+.step-text,
+.cut-remainder .label,
+.cut-card-meta span{ min-width:0; }
+.cut-card-head h3,
+.step-text{ overflow-wrap:anywhere; }
+
+@media screen and (max-width: 600px) {
+  html, body{
+    width:100%;
+    max-width:100%;
+    overflow-x:hidden;
+  }
+
+  .container,
+  .card,
+  .table-wrap,
+  .cut-card,
+  .cut-note,
+  .cut-summary,
+  .cut-settings,
+  .status-bar{
+    width:100%;
+    max-width:100%;
+    min-width:0;
+  }
+
+  /* Таблицы сжимаются под ширину карточки — ползунка нет */
+  .table-wrap{
+    overflow-x:hidden !important;
+  }
+
+  table{
+  width:100% !important;
+  min-width:0 !important;
+  max-width:100% !important;
+  table-layout:auto !important;
+  }
+
+  thead th, tbody td{
+    padding:8px 6px !important;
+    font-size:12px !important;
+    overflow-wrap:anywhere;
+    word-break:break-word;
+  }
+
+  /* Заголовки колонок переносятся на новую строку, а не растягивают таблицу */
+  th{
+    white-space:normal !important;
+    line-height:1.25;
+  }
+
+  /* Числовые колонки — фиксированной ширины, текстовые делят остальное */
+  
+  .num{ white-space:nowrap; }
+
+  /* Карточки раскроя: сетка статистики и шаги не выходят за экран */
+  .cut-summary{ grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); }
+  .cut-step{ gap:8px; }
+  .cut-card-meta{ gap:8px; }
+}
+
 </style>
 </head>
 <body>
@@ -880,7 +929,7 @@ input::placeholder{color:#a0a9b3}
         <thead>
           <tr>
             <th style="width:50px">№</th>
-            <th>Фасад</th>
+            <th style="width:200px">Наименование</th>
             <th style="width:200px">Цвет</th>
             <th style="width:150px" class="num">Кол-во</th>
           </tr>
@@ -904,13 +953,12 @@ input::placeholder{color:#a0a9b3}
   <div id="results">
     <div class="card" data-parallax>
       <h2 style="margin-top:0">2. Стекло — по цветам</h2>
-      <div class="info-block">Цвет стекла определяется цветом фасада, в который оно входит. Для каждого цвета — общий итог.</div>
       <div class="table-wrap">
         <table>
           <thead>
             <tr>
               <th>Цвет / Размер, мм</th>
-              <th class="num" style="width:140px">Кол-во, шт</th>
+              <th class="num">Кол-во, шт</th>
             </tr>
           </thead>
           <tbody id="glassBody"></tbody>
@@ -920,15 +968,14 @@ input::placeholder{color:#a0a9b3}
 
     <div class="card" data-parallax>
       <h2 style="margin-top:0">3. Планки — по цветам</h2>
-      <div class="info-block">Все планки сгруппированы по цвету фасадов. Для каждого цвета — общая длина.</div>
       <div class="table-wrap">
         <table>
           <thead>
             <tr>
               <th>Цвет / Длина, мм</th>
-              <th class="num" style="width:110px">Кол-во, шт</th>
-              <th class="num" style="width:160px">Общая длина, мм</th>
-              <th class="num" style="width:150px">Общая длина, м</th>
+              <th class="num">Кол-во, шт</th>
+              <th class="num">Общая длина, мм</th>
+              <th class="num">Общая длина, м</th>
             </tr>
           </thead>
           <tbody id="plankBody"></tbody>
@@ -960,14 +1007,13 @@ input::placeholder{color:#a0a9b3}
 
     <div class="card" data-parallax>
       <h2 style="margin-top:0">4. Фурнитура — пакетики с петлями</h2>
-      <div class="info-block">Цвет не важен. Считаем, сколько пакетиков с 2, 3 и 5 петлями нужно собрать.</div>
       <div class="table-wrap">
         <table>
           <thead>
             <tr>
               <th>Тип пакетика</th>
-              <th class="num" style="width:200px">Кол-во пакетиков, шт</th>
-              <th class="num" style="width:180px">Всего петель, шт</th>
+              <th class="num">Кол-во пакетиков, шт</th>
+              <th class="num">Всего петель, шт</th>
             </tr>
           </thead>
           <tbody id="hingeBody"></tbody>
@@ -981,10 +1027,10 @@ input::placeholder{color:#a0a9b3}
         <table>
           <thead>
             <tr>
-              <th style="width:50px">№</th>
-              <th>Фасад</th>
+              <th class="num">№</th>
+              <th>Наименование</th>
               <th>Цвет</th>
-              <th class="num" style="width:120px">Кол-во, шт</th>
+              <th class="num">Кол-во, шт</th>
             </tr>
           </thead>
           <tbody id="semiBody"></tbody>
@@ -1782,11 +1828,10 @@ function buildCuttingPlan() {
     output.innerHTML = '';
 
     groupedBars.forEach((bar, idx) => {
-      // Шаги: номер + иконка пилы
       const steps = bar.steps.map((step,j)=>`
         <div class="cut-step">
           <div class="step-num">${j+1}</div>
-          <div class="step-text">Выставить упор <b>${step.size} мм</b> и отрезать ${step.qty} шт.</div>
+          <div class="step-text">упор <b>${step.size} мм</b> отрезать ${step.qty} шт.</div>
           <div class="step-size">${step.size} × ${step.qty}</div>
         </div>`).join('');
 
@@ -1981,7 +2026,7 @@ function downloadPDF() {
   doc.text("4. Полуфабрикаты (с учётом цвета)", 14, y);
   doc.autoTable({
     startY: y + 4,
-    head: [["№", "Фасад", "Цвет", "Кол-во, шт"]],
+    head: [["№", "Наименование", "Цвет", "Кол-во, шт"]],
     body: lastResult.semi.map((s, i) => [i + 1, s.name, s.color, s.qty]),
     foot: [["", "", "ИТОГО:", lastResult.totalSemi]],
     styles: { fontSize: 10 },
